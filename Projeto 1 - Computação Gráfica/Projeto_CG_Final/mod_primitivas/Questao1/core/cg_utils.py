@@ -115,7 +115,10 @@ class QuadroDesenho:
     def put_pixel(self, x, y, cor="#000", s=1):
         sx, sy = self.mundo_para_canvas(x, y)
         tamanho = max(1, s * self.vp.escala) 
-        self.cv.create_rectangle(sx, sy, sx+tamanho, sy+tamanho, outline=cor, fill=cor)
+        if tamanho <= 1:
+            self.cv.create_line(sx, sy, sx + 1, sy, fill=cor, width=1)
+        else:
+            self.cv.create_rectangle(sx, sy, sx + tamanho, sy + tamanho, outline="", fill=cor)
 
 _quadro = None
 _app    = None

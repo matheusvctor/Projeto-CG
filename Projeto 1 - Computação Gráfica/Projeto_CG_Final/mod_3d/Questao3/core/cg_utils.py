@@ -29,7 +29,7 @@ TOP = 8
 
 def set_pixel(cv, x, y, cor="#000000"):
     ix, iy = int(round(x)), int(round(y))
-    cv.create_rectangle(ix, iy, ix+1, iy+1, outline=cor, fill=cor, width=0)
+    cv.create_line(ix, iy, ix + 1, iy, fill=cor, width=1)
 
 def reta_dda(cv, x0, y0, x1, y1, cor="#000000"):
     """Desenha uma reta 2D com DDA, usada após a projeção do modelo 3D."""

@@ -102,10 +102,11 @@ class AppTransf2D:
             b = ttk.Button(left, text=txt, command=cmd)
             b.pack(fill=tk.X, pady=6, ipadx=10, ipady=12)
         bigbtn("Transladar", self._dlg_transladar)
-        bigbtn("Rotacionar", self._dlg_rotacionar)
-        bigbtn("Escalonar", self._dlg_escalonar)
+        bigbtn("Rotacionar (Pivô)", self._dlg_rotacionar)
+        bigbtn("Escalonar (Pivô)", self._dlg_escalonar)
         bigbtn("Cisalhar",  self._dlg_cisalhar)
         bigbtn("Refletir",  self._dlg_refletir)
+        bigbtn("Compor Transformações 2D", self._dlg_composicao)
         bigbtn("Desfazer Último Passo", self._desfazer)
         bigbtn("Mostrar Viewport", self._mostrar_viewport)
         bigbtn("Limpar",    self.limpar)
@@ -414,6 +415,14 @@ class AppTransf2D:
         self.pontos = self._redo.pop(); self._undo.append(self.pontos[:])
         self._listar_pontos(); self.quadro.redraw()
 
+    def _centro_objeto(self):
+        """Calcula o centro geométrico (centróide) do objeto atual."""
+        if not self.pontos:
+            return 0.0, 0.0
+        cx = sum(p[0] for p in self.pontos) / len(self.pontos)
+        cy = sum(p[1] for p in self.pontos) / len(self.pontos)
+        return cx, cy
+
     def _aplicar_M(self, M, label):
         """Aplica a matriz homogênea ao conjunto de pontos e registra a operação no log."""
         if not self.pontos:
@@ -426,34 +435,111 @@ class AppTransf2D:
     def _dlg_transladar(self):
         """Solicita dx/dy ao usuário e executa a translação correspondente."""
         self._update_help("T")
-        d = _Dialog2(self.canvas.winfo_toplevel(), "Transladar",
+        d = _Dialog2(self.canvas.winfo_toplevel(), "Transladar 2D",
                      [("Valor de dx:", "dx"), ("Valor de dy:", "dy")])
         if not d.values: return
         M = T(d.values.get("dx",0.0), d.values.get("dy",0.0))
         self._aplicar_M(M, "Translação T")
 
     def _dlg_rotacionar(self):
-        """Solicita um ângulo em graus e aplica a rotação em torno da origem."""
+        """Aplica rotação permitindo escolher como pivô o centro do objeto ou a origem."""
         self._update_help("R")
-        d = _Dialog2(self.canvas.winfo_toplevel(), "Rotacionar",
-                     [("Ângulo θ (graus):", "theta")], {"theta":0})
-        if not d.values: return
-        M = R(d.values.get("theta",0.0))
-        self._aplicar_M(M, "Rotação R")
+        root = self.canvas.winfo_toplevel()
+        top = tk.Toplevel(root)
+        top.title("Rotacionar 2D (Com Pivô)")
+        top.transient(root)
+        top.grab_set()
+
+        cx, cy = self._centro_objeto()
+
+        ttk.Label(top, text="Ângulo de Rotação θ (graus):", font=("Segoe UI", 10, "bold")).pack(padx=12, pady=(10, 2))
+        ent_theta = ttk.Entry(top, width=15)
+        ent_theta.insert(0, "45")
+        ent_theta.pack(padx=12, pady=4)
+
+        ttk.Label(top, text="Ponto de Rotação (Pivô):", font=("Segoe UI", 10, "bold")).pack(padx=12, pady=(10, 2))
+        pivo_var = tk.StringVar(value="centro")
+        ttk.Radiobutton(top, text=f"Centro do Objeto ({cx:.1f}, {cy:.1f}) [Mantém na posição]", variable=pivo_var, value="centro").pack(anchor="w", padx=15, pady=2)
+        ttk.Radiobutton(top, text="Origem do Sistema (0, 0)", variable=pivo_var, value="origem").pack(anchor="w", padx=15, pady=2)
+
+        def ok():
+            try:
+                theta = float(ent_theta.get().strip() or 0.0)
+            except ValueError:
+                messagebox.showerror("Erro", "Digite um ângulo numérico válido.")
+                return
+
+            if pivo_var.get() == "centro":
+                # Composição homogênea em torno do centro: M = T(cx, cy) · R(θ) · T(-cx, -cy)
+                ida = T(-cx, -cy)
+                rot = R(theta)
+                volta = T(cx, cy)
+                M = multiplicar_matrizes(volta, multiplicar_matrizes(rot, ida))
+                label = f"Rotação R({theta:.1f}°) no Centro ({cx:.1f}, {cy:.1f})"
+            else:
+                M = R(theta)
+                label = f"Rotação R({theta:.1f}°) na Origem (0,0)"
+
+            top.destroy()
+            self._aplicar_M(M, label)
+
+        ttk.Button(top, text="Aplicar Rotação", command=ok).pack(pady=(12, 4), ipadx=10)
+        ttk.Button(top, text="Cancelar", command=top.destroy).pack(pady=(0, 10))
 
     def _dlg_escalonar(self):
-        """Solicita fatores em X/Y e aplica a escala ao objeto atual."""
+        """Solicita fatores em X/Y e aplica a escala em torno do centro do objeto ou da origem."""
         self._update_help("S")
-        d = _Dialog2(self.canvas.winfo_toplevel(), "Escalonar",
-                     [("sx:", "sx"), ("sy:", "sy")], {"sx":1,"sy":1})
-        if not d.values: return
-        M = S(d.values.get("sx",1.0), d.values.get("sy",1.0))
-        self._aplicar_M(M, "Escala S")
+        root = self.canvas.winfo_toplevel()
+        top = tk.Toplevel(root)
+        top.title("Escalonar 2D (Com Pivô)")
+        top.transient(root)
+        top.grab_set()
+
+        cx, cy = self._centro_objeto()
+
+        ttk.Label(top, text="Fator de Escala em X (sx):").pack(padx=12, pady=(8, 2))
+        ent_sx = ttk.Entry(top, width=15)
+        ent_sx.insert(0, "1.5")
+        ent_sx.pack(padx=12, pady=2)
+
+        ttk.Label(top, text="Fator de Escala em Y (sy):").pack(padx=12, pady=(6, 2))
+        ent_sy = ttk.Entry(top, width=15)
+        ent_sy.insert(0, "1.5")
+        ent_sy.pack(padx=12, pady=2)
+
+        pivo_var = tk.StringVar(value="centro")
+        ttk.Radiobutton(top, text=f"Escalar no Centro ({cx:.1f}, {cy:.1f})", variable=pivo_var, value="centro").pack(anchor="w", padx=15, pady=4)
+        ttk.Radiobutton(top, text="Escalar na Origem (0, 0)", variable=pivo_var, value="origem").pack(anchor="w", padx=15, pady=2)
+
+        def ok():
+            try:
+                sx = float(ent_sx.get().strip() or 1.0)
+                sy = float(ent_sy.get().strip() or 1.0)
+            except ValueError:
+                messagebox.showerror("Erro", "Digite fatores de escala numéricos válidos.")
+                return
+
+            if pivo_var.get() == "centro":
+                # Composição homogênea: M = T(cx, cy) · S(sx, sy) · T(-cx, -cy)
+                ida = T(-cx, -cy)
+                esc = S(sx, sy)
+                volta = T(cx, cy)
+                M = multiplicar_matrizes(volta, multiplicar_matrizes(esc, ida))
+                label = f"Escala S({sx:.2f}, {sy:.2f}) no Centro"
+            else:
+                M = S(sx, sy)
+                label = f"Escala S({sx:.2f}, {sy:.2f}) na Origem"
+
+            top.destroy()
+            self._aplicar_M(M, label)
+
+        ttk.Button(top, text="Aplicar Escala", command=ok).pack(pady=(10, 4), ipadx=10)
+        ttk.Button(top, text="Cancelar", command=top.destroy).pack(pady=(0, 10))
 
     def _dlg_cisalhar(self):
         """Solicita os fatores de cisalhamento e constrói a matriz Sh."""
         self._update_help("Sh")
-        d = _Dialog2(self.canvas.winfo_toplevel(), "Cisalhar",
+        d = _Dialog2(self.canvas.winfo_toplevel(), "Cisalhar 2D",
                      [("Valor de cisalhamento em x (shx):", "shx"),
                       ("Valor de cisalhamento em y (shy):", "shy")],
                      {"shx":0,"shy":0})
@@ -478,6 +564,96 @@ class AppTransf2D:
             self._aplicar_M(M, f"Reflexão {choice}")
         ttk.Button(top, text="OK", command=ok).pack(pady=8)
         ttk.Button(top, text="Cancelar", command=top.destroy).pack()
+
+    def _dlg_composicao(self):
+        """Permite compor múltiplas transformações sequenciais em uma única matriz homogênea."""
+        if not self.pontos:
+            messagebox.showinfo("Aviso", "Desenhe a base ou adicione pontos antes de compor transformações.")
+            return
+
+        root = self.canvas.winfo_toplevel()
+        top = tk.Toplevel(root)
+        top.title("Composição de Transformações 2D")
+        top.geometry("620x520")
+        top.transient(root)
+        top.grab_set()
+
+        cx, cy = self._centro_objeto()
+        etapas_matrizes = []
+
+        top_frame = ttk.Frame(top, padding=12)
+        top_frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(top_frame, text="Composição Sequencial de Transformações 2D", font=("Segoe UI", 12, "bold")).pack(anchor="w", pady=(0, 6))
+        ttk.Label(top_frame, text="Adicione transformações na sequência desejada. A matriz resultante M = Mn · ... · M1 será calculada e aplicada ao objeto.", wraplength=580).pack(anchor="w", pady=(0, 10))
+
+        listbox = tk.Listbox(top_frame, height=6, font=("Consolas", 10))
+        listbox.pack(fill=tk.X, pady=(0, 10))
+
+        # Painel de adição de operações
+        btn_grid = ttk.Frame(top_frame)
+        btn_grid.pack(fill=tk.X, pady=4)
+
+        def add_t():
+            d = _Dialog2(top, "Adicionar Translação", [("dx:", "dx"), ("dy:", "dy")])
+            if d.values:
+                dx, dy = d.values.get("dx", 0.0), d.values.get("dy", 0.0)
+                M = T(dx, dy)
+                etapas_matrizes.append((f"Translação T(dx={dx:.1f}, dy={dy:.1f})", M))
+                listbox.insert(tk.END, f"{len(etapas_matrizes)}. Translação T(dx={dx:.1f}, dy={dy:.1f})")
+
+        def add_r():
+            d = _Dialog2(top, "Adicionar Rotação no Centro", [("Ângulo θ:", "theta")])
+            if d.values:
+                th = d.values.get("theta", 0.0)
+                ida = T(-cx, -cy); rot = R(th); volta = T(cx, cy)
+                M = multiplicar_matrizes(volta, multiplicar_matrizes(rot, ida))
+                etapas_matrizes.append((f"Rotação no Centro R(θ={th:.1f}°)", M))
+                listbox.insert(tk.END, f"{len(etapas_matrizes)}. Rotação no Centro R(θ={th:.1f}°)")
+
+        def add_s():
+            d = _Dialog2(top, "Adicionar Escala no Centro", [("sx:", "sx"), ("sy:", "sy")], {"sx":1,"sy":1})
+            if d.values:
+                sx, sy = d.values.get("sx", 1.0), d.values.get("sy", 1.0)
+                ida = T(-cx, -cy); esc = S(sx, sy); volta = T(cx, cy)
+                M = multiplicar_matrizes(volta, multiplicar_matrizes(esc, ida))
+                etapas_matrizes.append((f"Escala no Centro S(sx={sx:.2f}, sy={sy:.2f})", M))
+                listbox.insert(tk.END, f"{len(etapas_matrizes)}. Escala no Centro S(sx={sx:.2f}, sy={sy:.2f})")
+
+        def add_sh():
+            d = _Dialog2(top, "Adicionar Cisalhamento", [("shx:", "shx"), ("shy:", "shy")])
+            if d.values:
+                shx, shy = d.values.get("shx", 0.0), d.values.get("shy", 0.0)
+                M = Sh(shx, shy)
+                etapas_matrizes.append((f"Cisalhamento Sh(shx={shx:.2f}, shy={shy:.2f})", M))
+                listbox.insert(tk.END, f"{len(etapas_matrizes)}. Cisalhamento Sh(shx={shx:.2f}, shy={shy:.2f})")
+
+        def limpar_etapas():
+            etapas_matrizes.clear()
+            listbox.delete(0, tk.END)
+
+        ttk.Button(btn_grid, text="+ Translação", command=add_t).pack(side=tk.LEFT, padx=3)
+        ttk.Button(btn_grid, text="+ Rotação (Centro)", command=add_r).pack(side=tk.LEFT, padx=3)
+        ttk.Button(btn_grid, text="+ Escala (Centro)", command=add_s).pack(side=tk.LEFT, padx=3)
+        ttk.Button(btn_grid, text="+ Cisalhamento", command=add_sh).pack(side=tk.LEFT, padx=3)
+        ttk.Button(btn_grid, text="Limpar Lista", command=limpar_etapas).pack(side=tk.RIGHT, padx=3)
+
+        def aplicar_composta():
+            if not etapas_matrizes:
+                messagebox.showwarning("Aviso", "Adicione ao menos uma transformação na lista.")
+                return
+
+            # Multiplicação sequencial acumulada: M_composta = Mn · ... · M1
+            M_acumulada = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+            descricao_etapas = []
+            for nome, M_etapa in etapas_matrizes:
+                M_acumulada = multiplicar_matrizes(M_etapa, M_acumulada)
+                descricao_etapas.append(nome)
+
+            top.destroy()
+            self._aplicar_M(M_acumulada, "Composição de Transformações (" + " -> ".join(descricao_etapas) + ")")
+
+        ttk.Button(top_frame, text="✔ Aplicar Composição ao Objeto", command=aplicar_composta).pack(pady=(15, 6), fill=tk.X, ipady=8)
 
 def main():
     """Ponto de entrada isolado da tela de transformações 2D."""

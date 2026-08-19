@@ -1,4 +1,4 @@
-﻿"""
+"""
 Interface da Questao 2 - recorte de poligonos com Sutherland-Hodgman.
 """
 
@@ -17,7 +17,7 @@ class AppSutherlandHodgman:
     def __init__(self, root, on_back=None):
         """Interface para recortar polígonos e acompanhar cada etapa do algoritmo."""
         self.on_back = on_back
-        self.zoom = tk.IntVar(value=8)
+        self.zoom = tk.IntVar(value=1)
         self.vertex_x = tk.StringVar(value="0")
         self.vertex_y = tk.StringVar(value="0")
         self.vertices_text = tk.StringVar()

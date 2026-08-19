@@ -27,7 +27,7 @@ class AppCohenSutherland:
         """Interface para testar recorte de segmentos com explicação passo a passo."""
         self.on_back = on_back
         self.tamanho_pixel = tk.IntVar(value=1)
-        self.zoom = tk.IntVar(value=8)
+        self.zoom = tk.IntVar(value=1)
         self.anotar = tk.BooleanVar(value=True)
 
         self.x0 = tk.DoubleVar(value=-45)

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 core.cg_utils - drawing helpers and clipping routines.
@@ -130,7 +130,10 @@ class QuadroDesenho:
     def put_pixel(self, x, y, cor="#000000", s=1):
         sx, sy = self.mundo_para_canvas(x, y)
         tamanho = max(1, s * self.vp.escala)
-        self.cv.create_rectangle(sx, sy, sx + tamanho, sy + tamanho, outline=cor, fill=cor)
+        if tamanho <= 1:
+            self.cv.create_line(sx, sy, sx + 1, sy, fill=cor, width=1)
+        else:
+            self.cv.create_rectangle(sx, sy, sx + tamanho, sy + tamanho, outline="", fill=cor)
 
     def _desenhar_borda(self):
         self.cv.create_rectangle(1, 1, self.vp.largura - 1, self.vp.altura - 1, outline="#d6d6d6", width=2)

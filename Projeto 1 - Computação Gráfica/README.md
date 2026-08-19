@@ -1,48 +1,54 @@
-# Projeto 1 - Computacao Grafica
+# Projeto 1 - Computação Gráfica (Unidade 1)
 
-Projeto em Python para a disciplina de Computacao Grafica, com interface em `tkinter`, organizado em quatro questoes principais.
+Ambiente integrado em Python/Tkinter com a implementação de todos os algoritmos fundamentais de rasterização de primitivas, recortes 2D, modelagem 3D, transformações homogêneas e splines da Unidade 1.
 
-## Modulos
+---
 
-- `Questao 1 - Primitivas e Transformacoes 2D`:
-  - desenho de formas simples e conicas;
-  - transformacoes 2D (translacao, rotacao, escala e cisalhamento).
-- `Questao 2 - Recortes`:
-  - recorte de retas com Cohen-Sutherland;
-  - recorte de poligonos com Sutherland-Hodgman.
-- `Questao 3 - Transformacoes 3D`:
-  - transformacoes no objeto 3D (translacao, rotacao, escala, reflexoes e cisalhamento);
-  - projecao e exibicao em viewport com historico de transformacoes.
-- `Questao 4 - Operacoes com Imagens PGM`:
-  - transformacoes afins em imagens (escala, rotacao, translacao, cisalhamento e reflexao);
-  - carregamento e visualizacao de imagens `PGM`.
+## 🔬 Módulos Implementados
 
-## Estrutura
+### ◈ Questão 1 & 5 — Primitivas, Cônicas e Splines de Bézier
+- **Segmentos de Reta**: Algoritmos **DDA** e **Ponto Médio (Bresenham)** para todos os 8 oitantes do plano cartesiano ($|m| \le 1$ e $|m| > 1$).
+- **Circunferências**: Métodos da **Equação Explícita (Polinomial)**, **Parametrização Trigonométrica** e **Ponto Médio com Simetria de 8 Oitantes**.
+- **Elipse por Varredura**: Algoritmo do **Ponto Médio** com separação analítica em Região 1 ($\frac{dy}{dx} > -1$) e Região 2 ($\frac{dy}{dx} < -1$).
+- **Seções Cônicas**: Varredura e classificação por discriminante para **Parábolas** e **Hipérboles**.
+- **Splines de Bézier Cúbicas (Q5)**: Curvas com 4 pontos de controle via polinômios de Bernstein:
+  $$P(t) = (1-t)^3 P_0 + 3(1-t)^2 t P_1 + 3(1-t) t^2 P_2 + t^3 P_3$$
 
-- `Projeto_CG_Final/main_menu.py`: menu principal para acesso aos modulos.
-- `Projeto_CG_Final/theme.py`: tema visual compartilhado da interface.
-- `Projeto_CG_Final/mod_primitivas/Questao1`: primitivas e transformacoes 2D.
-- `Projeto_CG_Final/mod_recortes/Questao2`: interfaces e algoritmos de recorte.
-- `Projeto_CG_Final/mod_3d/Questao3`: ambiente de transformacoes 3D.
-- `Projeto_CG_Final/mod_imagens/Questao4`: transformacoes geometricas aplicadas em imagens `PGM`.
+### ◈ Transformações Homogêneas 2D & Composição (Q1)
+- **Transformações com Pivô no Centro**: Rotação e Escala aplicadas em torno do baricentro geométrico do objeto ($M = T(x_c, y_c) \cdot R(\theta) \cdot T(-x_c, -y_c)$), garantindo que o objeto gire no próprio lugar sem transladar para fora da posição.
+- **Composição de Transformações**: Pipeline sequencial de multiplicação matricial acumulada ($M_{\text{total}} = M_n \cdot M_{n-1} \dots M_1$), permitindo encadear translações, rotações, escalas e cisalhamentos em uma única matriz aplicada diretamente.
 
-## Como executar
+### ◈ Questão 2 — Algoritmos de Recorte de Janela
+- **Recorte de Linhas (Cohen-Sutherland)**: Códigos de região (*Outcodes* de 4 bits: `TOP`, `BOTTOM`, `RIGHT`, `LEFT`), rejeição/aceitação trivial e cálculo das interseções nas 4 bordas.
+- **Animação Contínua**: Linha com comprimento superior à diagonal da janela girando em sentido horário no centro do viewport com recorte dinâmico a cada quadro.
+- **Recorte de Polígonos (Sutherland-Hodgman)**: Pipeline completo contra as 4 bordas com rastreamento visual das regras (*dentro $\to$ dentro*, *fora $\to$ dentro*, *dentro $\to$ fora*, *fora $\to$ fora*).
 
-1. Entre na pasta `Projeto_CG_Final`.
-2. Garanta que o Python 3 esteja disponivel no ambiente.
-3. Execute o menu principal:
+### ◈ Questão 3 — Modelagem 3D, Projeção Isométrica & Viewport
+- **Transformações 3D**: Translação, Rotação em $X, Y, Z$, Escala, Cisalhamento 3D e Reflexões espaciais.
+- **Projeção Paralela Isométrica**: Projeção ortográfica isométrica sobre matriz 3D com mapeamento da **Janela do Mundo $\to$ Viewport**.
 
+### ◈ Questão 4 — Transformações Afins em Imagens PGM
+- **Operadores Geométricos**: Escala, Rotação, Translação, Cisalhamento e Reflexão sobre imagens PGM (`.pgm`).
+- **Mapeamento Inverso (Inverse Mapping)**: Prevenção de furos/buracos por varredura da imagem de saída com matriz inversa $T^{-1}$.
+
+---
+
+## 🛠️ Correções e Aprimoramentos Técnicos
+
+- **Ativação Real de Pixels Discretos**: A função de plotagem gráfica foi corrigida para desenhar exatamente **1 pixel físico nítido** por coordenada calculada (eliminando bordas que geravam 4 pixels duplicados).
+- **Rotação com Pivô Central**: A rotação 2D agora calcula automaticamente o centro geométrico $(x_c, y_c)$, preservando o objeto na sua posição espacial correta.
+- **Composição Matricial 2D**: Adicionada ferramenta dedicada para compor e executar cadeias de matrizes homogêneas $3\times3$.
+
+---
+
+## 🚀 Como Executar
+
+### Via Script Python:
 ```powershell
-python .\main_menu.py
+python ".\Projeto 1 - Computação Gráfica\Projeto_CG_Final\main_menu.py"
 ```
 
-## Observacoes
-
-- O projeto utiliza a biblioteca padrao do Python com `tkinter` para a interface grafica.
-- Alguns modulos podem ser executados de forma independente a partir de seus scripts internos.
-- O modulo de imagens da Questao 4 trabalha com arquivos no formato `PGM`.
-
-## Erros Cometidos
-
-- Na parte de transformações 2D, não contém composição de transformações, e também quando ele rotaciona, o objeto sai da sua posição atual.
-- O pixels não estão sendo ativados a nível de pixel(o desenho fica fino quando isso está correto), parecendo que está sendo ativado 4 pixels para ser um pixel só.
+### Via Executável Standalone (.exe):
+```powershell
+& ".\Projeto 1 - Computação Gráfica\Projeto_CG_Final\dist\Projeto1_ComputacaoGrafica.exe"
+```
