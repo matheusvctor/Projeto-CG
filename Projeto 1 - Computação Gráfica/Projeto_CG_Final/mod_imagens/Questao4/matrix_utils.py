@@ -57,6 +57,14 @@ def shear_2d(shx, shy):
     """Cria a matriz homogênea de cisalhamento em X e/ou Y."""
     return [[1.0, float(shx), 0.0], [float(shy), 1.0, 0.0], [0.0, 0.0, 1.0]]
 
+def reflect_x_2d():
+    """Espelha a imagem verticalmente (inverte o sinal de Y)."""
+    return [[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0]]
+
 def reflect_y_2d():
-    """Espelha a imagem em torno do eixo Y, invertendo o sinal de X."""
+    """Espelha a imagem horizontalmente (inverte o sinal de X)."""
     return [[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+
+def reflect_both_2d():
+    """Espelha a imagem em ambos os eixos (origem)."""
+    return [[-1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0]]

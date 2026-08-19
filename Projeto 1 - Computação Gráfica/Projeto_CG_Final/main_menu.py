@@ -121,28 +121,8 @@ class MainMenu:
         self.build_ui()
 
     def build_ui(self):
-        """Monta o layout com Sidebar à esquerda e Card de apresentação à direita."""
-        # Topbar
-        topbar = tk.Frame(self.root, bg=theme.BG_HEADER, height=54)
-        topbar.pack(side=tk.TOP, fill=tk.X)
-
-        tk.Label(
-            topbar,
-            text="⬢ COMPUTACÃO GRÁFICA",
-            font=theme.FONT_HEADER,
-            bg=theme.BG_HEADER,
-            fg=theme.CYAN_GLOW
-        ).pack(side=tk.LEFT, padx=20, pady=12)
-
-        tk.Label(
-            topbar,
-            text="Ambiente Integrado — Unidade 1",
-            font=theme.FONT_NORMAL,
-            bg=theme.BG_HEADER,
-            fg=theme.FG_SUBTEXT
-        ).pack(side=tk.LEFT, padx=5, pady=12)
-
-        # Corpo principal
+        """Monta o layout com Sidebar à esquerda e Card de apresentação à direita (sem navbar superior)."""
+        # Corpo principal (ocupa toda a janela)
         corpo = tk.Frame(self.root, bg=theme.BG_APP)
         corpo.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
@@ -151,13 +131,34 @@ class MainMenu:
         sidebar.pack(side=tk.LEFT, fill=tk.Y)
         sidebar.pack_propagate(False)
 
+        # Título e Identidade integrados na própria Sidebar
+        tk.Label(
+            sidebar,
+            text="⬢ COMPUTACÃO GRÁFICA",
+            font=theme.FONT_HEADER,
+            bg=theme.BG_PANEL,
+            fg=theme.CYAN_GLOW
+        ).pack(anchor="w", padx=20, pady=(20, 2))
+
+        tk.Label(
+            sidebar,
+            text="Ambiente Integrado — Unidade 1",
+            font=theme.FONT_NORMAL,
+            bg=theme.BG_PANEL,
+            fg=theme.FG_SUBTEXT
+        ).pack(anchor="w", padx=20, pady=(0, 15))
+
+        # Linha divisória sutil
+        tk.Frame(sidebar, bg=theme.BORDER_COLOR, height=1).pack(fill=tk.X, padx=20, pady=(0, 15))
+
         tk.Label(
             sidebar,
             text="MÓDULOS DO PROJETO",
             font=theme.FONT_SUBTITLE,
             bg=theme.BG_PANEL,
             fg=theme.FG_MUTED
-        ).pack(anchor="w", padx=20, pady=(20, 10))
+        ).pack(anchor="w", padx=20, pady=(0, 10))
+
 
         self.botoes_sidebar = []
         for mod in self.modulos:
