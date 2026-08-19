@@ -19,7 +19,7 @@ def _criar_aba_rolavel(master, classe_aba):
 class JanelaPrincipal(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("Nexus PDI - Studio de Processamento Digital de Imagens")
+        self.title("Processamento de Imagens")
         largura_inicial = 1420
         altura_inicial = 880
         self.geometry(f"{largura_inicial}x{altura_inicial}")
@@ -105,62 +105,24 @@ class JanelaPrincipal(tk.Tk):
         sidebar.pack(side="left", fill="y")
         sidebar.pack_propagate(False)
 
-        # Header da Sidebar
-        topo_sidebar = tk.Frame(sidebar, bg=tema.COR_SIDEBAR, padx=16, pady=20)
+        # Header limpo da Sidebar
+        topo_sidebar = tk.Frame(sidebar, bg=tema.COR_SIDEBAR, padx=18, pady=24)
         topo_sidebar.pack(fill="x")
 
         tk.Label(
             topo_sidebar,
-            text="◈ NEXUS PDI",
+            text="Menu Principal",
             bg=tema.COR_SIDEBAR,
-            fg=tema.COR_DESTAQUE,
-            font=("Segoe UI", 16, "bold"),
+            fg=tema.COR_TEXTO,
+            font=("Segoe UI", 13, "bold"),
         ).pack(anchor="w")
 
-        tk.Label(
-            topo_sidebar,
-            text="Digital Vision & Image Studio",
-            bg=tema.COR_SIDEBAR,
-            fg=tema.COR_TEXTO_MUTED,
-            font=tema.FONTE_PEQUENA,
-        ).pack(anchor="w", pady=(2, 0))
-
         # Divisor sutil
-        tk.Frame(sidebar, bg=tema.COR_BORDA, height=1).pack(fill="x", padx=16, pady=(0, 15))
-
-        # Label de Categoria
-        tk.Label(
-            sidebar,
-            text="MÓDULOS DE PROCESSAMENTO",
-            bg=tema.COR_SIDEBAR,
-            fg=tema.COR_TEXTO_MUTED,
-            font=("Segoe UI", 8, "bold"),
-            padx=18,
-        ).pack(anchor="w", pady=(0, 8))
+        tk.Frame(sidebar, bg=tema.COR_BORDA, height=1).pack(fill="x", padx=16, pady=(0, 16))
 
         # Menu de Itens da Sidebar
         self.container_menu = tk.Frame(sidebar, bg=tema.COR_SIDEBAR)
         self.container_menu.pack(fill="x", expand=True, anchor="n")
-
-        # Rodapé da Sidebar
-        rodape_sidebar = tk.Frame(sidebar, bg=tema.COR_SIDEBAR, padx=16, pady=16)
-        rodape_sidebar.pack(side="bottom", fill="x")
-
-        tk.Frame(rodape_sidebar, bg=tema.COR_BORDA, height=1).pack(fill="x", pady=(0, 12))
-
-        status_engine = tk.Frame(rodape_sidebar, bg=tema.COR_PAINEL, padx=10, pady=8)
-        status_engine.pack(fill="x")
-
-        status_dot = tk.Label(status_engine, text="●", bg=tema.COR_PAINEL, fg=tema.COR_SUCESSO, font=("Segoe UI", 9))
-        status_dot.pack(side="left", padx=(0, 6))
-
-        tk.Label(
-            status_engine,
-            text="NetPBM Engine Active",
-            bg=tema.COR_PAINEL,
-            fg=tema.COR_TEXTO,
-            font=tema.FONTE_PEQUENA,
-        ).pack(side="left")
 
         # ----------------------------------------------------
         # 2. ÁREA DE CONTEÚDO À DIREITA
@@ -174,23 +136,12 @@ class JanelaPrincipal(tk.Tk):
 
         self.rotulo_breadcrumb = tk.Label(
             topbar,
-            text="Módulos > Filtros Espaciais",
+            text="Filtros Espaciais",
             bg=tema.COR_PAINEL,
             fg=tema.COR_DESTAQUE,
             font=("Segoe UI", 12, "bold"),
         )
         self.rotulo_breadcrumb.pack(side="left", pady=14)
-
-        tag_versao = tk.Label(
-            topbar,
-            text="v2.5 Pro",
-            bg=tema.COR_PAINEL_ALT,
-            fg=tema.COR_TEXTO_MUTED,
-            font=("Segoe UI", 8, "bold"),
-            padx=8,
-            pady=3,
-        )
-        tag_versao.pack(side="right", pady=14)
 
         # Container dos Módulos (telas trocadas)
         self.container_conteudo = tk.Frame(area_direita, bg=tema.COR_FUNDO, padx=16, pady=12)
@@ -280,5 +231,5 @@ class JanelaPrincipal(tk.Tk):
         dados_novos["rotulo"].configure(bg=tema.COR_PAINEL, fg="#ffffff")
         dados_novos["indicador"].configure(bg=tema.COR_DESTAQUE)
 
-        self.rotulo_breadcrumb.configure(text=f"Módulos  ›  {dados_novos['titulo']}")
+        self.rotulo_breadcrumb.configure(text=dados_novos["titulo"])
         dados_novos["frame"].pack(fill="both", expand=True)

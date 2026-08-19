@@ -5,15 +5,8 @@ from pathlib import Path
 
 import numpy as np
 
-try:
-    from PIL import Image
-except ImportError:  # pragma: no cover - depende do ambiente do usuario
-    Image = None
-
-try:
-    from scipy.spatial import Delaunay
-except ImportError:  # pragma: no cover - depende do ambiente do usuario
-    Delaunay = None
+from PIL import Image
+from scipy.spatial import Delaunay
 
 
 @dataclass(slots=True)

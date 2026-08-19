@@ -22,13 +22,18 @@ from laboratorio_imagens.core.transformacoes_intensidade import (
 from laboratorio_imagens.ui.widgets import GraficoHistograma, PainelImagem, SincronizadorPaineisImagem, criar_barra_status, criar_seletor_janela
 
 
-TIPOS_IMAGEM = [("Imagens NetPBM", "*.pgm *.pbm"), ("PGM", "*.pgm"), ("PBM", "*.pbm")]
+TIPOS_IMAGEM = [
+    ("Todas as Imagens Suportadas", "*.pgm *.pbm *.png *.jpg *.jpeg *.bmp *.webp"),
+    ("Imagens Comuns (PNG, JPG)", "*.png *.jpg *.jpeg *.bmp *.webp"),
+    ("Imagens NetPBM (PGM, PBM)", "*.pgm *.pbm"),
+    ("Todos os Arquivos", "*.*"),
+]
 NOME_NEGATIVO_IMAGEM = "Negativo de uma imagem"
-NOME_TRANSFORMACAO_GAMMA = "Transforma\u00e7\u00e3o Gamma"
-NOME_TRANSFORMACAO_LOGARITMO = "Transforma\u00e7\u00e3o logaritmo"
-NOME_FUNCAO_TRANSFERENCIA_GERAL = "Fun\u00e7\u00e3o de transfer\u00eancia de intensidade geral"
-NOME_FUNCAO_TRANSFERENCIA_FAIXA_DINAMICA = "Fun\u00e7\u00e3o de transfer\u00eancia faixa din\u00e2mica"
-NOME_FUNCAO_TRANSFERENCIA_LINEAR = "Fun\u00e7\u00e3o de transfer\u00eancia linear"
+NOME_TRANSFORMACAO_GAMMA = "Transformação Gamma"
+NOME_TRANSFORMACAO_LOGARITMO = "Transformação logaritmo"
+NOME_FUNCAO_TRANSFERENCIA_GERAL = "Função de transferência de intensidade geral"
+NOME_FUNCAO_TRANSFERENCIA_FAIXA_DINAMICA = "Função de transferência faixa dinâmica"
+NOME_FUNCAO_TRANSFERENCIA_LINEAR = "Função de transferência linear"
 NOME_EQUALIZE_HISTOGRAMA = "Equalize o histograma"
 
 
@@ -44,7 +49,13 @@ def _salvar_dialogo_resultado(imagem: ImagemNetpbm) -> Path | None:
     caminho = filedialog.asksaveasfilename(
         title="Salvar resultado",
         defaultextension=extensao_padrao,
-        filetypes=[("PGM", "*.pgm"), ("PBM", "*.pbm")],
+        filetypes=[
+            ("PGM (*.pgm)", "*.pgm"),
+            ("PBM (*.pbm)", "*.pbm"),
+            ("PNG (*.png)", "*.png"),
+            ("JPG (*.jpg)", "*.jpg"),
+            ("Todos os Arquivos", "*.*"),
+        ],
     )
     if not caminho:
         return None
@@ -53,7 +64,7 @@ def _salvar_dialogo_resultado(imagem: ImagemNetpbm) -> Path | None:
 
 def _descricao_imagem(imagem: ImagemNetpbm) -> str:
     origem = imagem.caminho_origem.name if imagem.caminho_origem else imagem.nome
-    tipo = "PBM" if imagem.binaria else "PGM"
+    tipo = "PBM (Binária)" if imagem.binaria else f"Tons de cinza ({imagem.formato_origem})"
     return f"{origem} | {imagem.largura} x {imagem.altura} | {tipo}"
 
 

@@ -86,67 +86,93 @@ def _normalizar_para_uint8(matriz: np.ndarray, valor_maximo: int) -> np.ndarray:
 
 
 def carregar_imagem(caminho: str | Path) -> ImagemNetpbm:
-    # leitura: detecta o tipo da imagem e converte o conteudo para matriz uint8
+    # leitura: suporta nativamente NetPBM (P1, P2, P5) e imagens comuns (PNG, JPG, JPEG, BMP, WEBP)
     caminho_imagem = Path(caminho)
-    with caminho_imagem.open("rb") as arquivo:
-        identificador = _ler_token(arquivo).decode("ascii", errors="ignore")
-        if identificador not in FORMATOS_SUPORTADOS:
-            raise ValueError(
-                f"Formato '{identificador}' nao suportado. Utilize arquivos P1, P2 ou P5."
-            )
+    extensao = caminho_imagem.suffix.lower()
 
-        largura = int(_ler_token(arquivo))
-        altura = int(_ler_token(arquivo))
+    # 1. Tenta carregar como NetPBM se a extensão for .pgm ou .pbm
+    if extensao in {".pgm", ".pbm"}:
+        try:
+            with caminho_imagem.open("rb") as arquivo:
+                identificador = _ler_token(arquivo).decode("ascii", errors="ignore")
+                if identificador in FORMATOS_SUPORTADOS:
+                    largura = int(_ler_token(arquivo))
+                    altura = int(_ler_token(arquivo))
 
-        if identificador == "P1":
-            valores = []
-            while True:
-                token = _ler_token(arquivo)
-                if not token:
-                    break
-                valores.append(int(token))
-            matriz = np.array(valores, dtype=np.uint8).reshape((altura, largura))
-            matriz = np.where(matriz > 0, 255, 0).astype(np.uint8)
+                    if identificador == "P1":
+                        valores = []
+                        while True:
+                            token = _ler_token(arquivo)
+                            if not token:
+                                break
+                            valores.append(int(token))
+                        matriz = np.array(valores, dtype=np.uint8).reshape((altura, largura))
+                        matriz = np.where(matriz > 0, 255, 0).astype(np.uint8)
+                        return ImagemNetpbm(
+                            matriz=matriz,
+                            caminho_origem=caminho_imagem,
+                            formato_origem=identificador,
+                            binaria=True,
+                            nome=caminho_imagem.stem,
+                        )
+
+                    valor_maximo = int(_ler_token(arquivo))
+
+                    if identificador == "P2":
+                        valores = []
+                        while True:
+                            token = _ler_token(arquivo)
+                            if not token:
+                                break
+                            valores.append(int(token))
+                        matriz = np.array(valores, dtype=np.uint16).reshape((altura, largura))
+                        matriz = _normalizar_para_uint8(matriz, valor_maximo)
+                        return ImagemNetpbm(
+                            matriz=matriz,
+                            caminho_origem=caminho_imagem,
+                            formato_origem=identificador,
+                            binaria=False,
+                            nome=caminho_imagem.stem,
+                        )
+
+                    _posicionar_em_dados_binarios(arquivo)
+                    bruto = arquivo.read()
+                    if valor_maximo <= 255:
+                        matriz = np.frombuffer(bruto, dtype=np.uint8).reshape((altura, largura))
+                    else:
+                        matriz = np.frombuffer(bruto, dtype=">u2").reshape((altura, largura))
+                    matriz = _normalizar_para_uint8(matriz, valor_maximo)
+                    return ImagemNetpbm(
+                        matriz=matriz,
+                        caminho_origem=caminho_imagem,
+                        formato_origem=identificador,
+                        binaria=False,
+                        nome=caminho_imagem.stem,
+                    )
+        except Exception:
+            pass  # Se falhar o parser NetPBM, cai para o leitor de imagem universal (PIL)
+
+    # 2. Carregamento universal via PIL (PNG, JPG, JPEG, BMP, WEBP, etc.)
+    try:
+        from PIL import Image
+        with Image.open(caminho_imagem) as img:
+            eh_binaria = img.mode == "1"
+            if eh_binaria:
+                matriz = (np.array(img, dtype=np.uint8) * 255).astype(np.uint8)
+            else:
+                img_cinza = img.convert("L")
+                matriz = np.array(img_cinza, dtype=np.uint8)
+
             return ImagemNetpbm(
                 matriz=matriz,
                 caminho_origem=caminho_imagem,
-                formato_origem=identificador,
-                binaria=True,
+                formato_origem=extensao.lstrip(".").upper() or "IMG",
+                binaria=eh_binaria,
                 nome=caminho_imagem.stem,
             )
-
-        valor_maximo = int(_ler_token(arquivo))
-
-        if identificador == "P2":
-            valores = []
-            while True:
-                token = _ler_token(arquivo)
-                if not token:
-                    break
-                valores.append(int(token))
-            matriz = np.array(valores, dtype=np.uint16).reshape((altura, largura))
-            matriz = _normalizar_para_uint8(matriz, valor_maximo)
-            return ImagemNetpbm(
-                matriz=matriz,
-                caminho_origem=caminho_imagem,
-                formato_origem=identificador,
-                binaria=False,
-                nome=caminho_imagem.stem,
-            )
-
-        _posicionar_em_dados_binarios(arquivo)
-        bruto = arquivo.read()
-        if valor_maximo <= 255:
-            matriz = np.frombuffer(bruto, dtype=np.uint8).reshape((altura, largura))
-        else:
-            matriz = np.frombuffer(bruto, dtype=">u2").reshape((altura, largura))
-        matriz = _normalizar_para_uint8(matriz, valor_maximo)
-        return ImagemNetpbm(
-            matriz=matriz,
-            caminho_origem=caminho_imagem,
-            formato_origem=identificador,
-            binaria=False,
-            nome=caminho_imagem.stem,
+    except Exception as erro:
+        raise ValueError(
+            f"Não foi possível abrir o arquivo '{caminho_imagem.name}': formato não reconhecido ou corrompido ({erro})."
         )
 
 
@@ -156,12 +182,25 @@ def salvar_imagem(
     *,
     formato: str | None = None,
 ) -> Path:
-    # saida: salva a matriz no formato escolhido, preservando uma escrita simples
+    # saida: salva a matriz no formato escolhido (NetPBM ou PNG/JPG/BMP)
     caminho_saida = Path(caminho)
     matriz = np.asarray(imagem.matriz, dtype=np.uint8)
+    extensao = caminho_saida.suffix.lower()
+
+    # Salvamento de formatos comuns via PIL (PNG, JPG, etc.)
+    if extensao in {".png", ".jpg", ".jpeg", ".bmp", ".webp"}:
+        from PIL import Image
+        if imagem.binaria:
+            modo = "1"
+            img_pil = Image.fromarray(matriz > 127).convert(modo)
+        else:
+            modo = "L"
+            img_pil = Image.fromarray(matriz, mode=modo)
+        img_pil.save(caminho_saida)
+        return caminho_saida
 
     if formato is None:
-        if caminho_saida.suffix.lower() == ".pbm":
+        if extensao == ".pbm":
             formato = "P1"
         else:
             formato = "P5"
