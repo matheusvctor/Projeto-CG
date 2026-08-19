@@ -38,4 +38,93 @@ FONT_HEADER = ("Segoe UI", 16, "bold")
 FONT_TITLE = ("Segoe UI", 12, "bold")
 FONT_SUBTITLE = ("Segoe UI", 10, "bold")
 FONT_NORMAL = ("Segoe UI", 9)
-FONT_CODE = ("Consolas", 9)
+FONT_CODE = ("Consolas", 9)
+
+
+def make_btn(parent, text, command, btn_type="primary", **kwargs):
+    """Cria um botão Tkinter padronizado, moderno e responsivo com feedback visual."""
+    import tkinter as tk
+    configs = {
+        "primary": {
+            "bg": ACCENT, "fg": "#ffffff",
+            "activebackground": ACCENT_HOVER, "activeforeground": "#ffffff",
+            "font": FONT_SUBTITLE, "relief": "flat", "cursor": "hand2",
+            "padx": 12, "pady": 6
+        },
+        "success": {
+            "bg": SUCCESS, "fg": "#ffffff",
+            "activebackground": SUCCESS_HOVER, "activeforeground": "#ffffff",
+            "font": FONT_TITLE, "relief": "flat", "cursor": "hand2",
+            "padx": 14, "pady": 8
+        },
+        "danger": {
+            "bg": DANGER, "fg": "#ffffff",
+            "activebackground": DANGER_HOVER, "activeforeground": "#ffffff",
+            "font": FONT_SUBTITLE, "relief": "flat", "cursor": "hand2",
+            "padx": 10, "pady": 5
+        },
+        "secondary": {
+            "bg": BG_INPUT, "fg": FG_TEXT,
+            "activebackground": BORDER_COLOR, "activeforeground": CYAN_GLOW,
+            "font": FONT_NORMAL, "relief": "flat", "cursor": "hand2",
+            "padx": 8, "pady": 4
+        },
+        "action": {
+            "bg": CYAN_GLOW, "fg": "#090d16",
+            "activebackground": "#7dd3fc", "activeforeground": "#000000",
+            "font": FONT_TITLE, "relief": "flat", "cursor": "hand2",
+            "padx": 16, "pady": 8
+        },
+        "warning": {
+            "bg": WARNING, "fg": "#000000",
+            "activebackground": "#fbbf24", "activeforeground": "#000000",
+            "font": FONT_SUBTITLE, "relief": "flat", "cursor": "hand2",
+            "padx": 10, "pady": 5
+        }
+    }
+    cfg = configs.get(btn_type, configs["primary"]).copy()
+    cfg.update(kwargs)
+    return tk.Button(parent, text=text, command=command, **cfg)
+
+
+def configure_ttk_styles(root=None):
+    """Configura o visual escuro elegante para todos os widgets TTK da aplicação."""
+    from tkinter import ttk
+    style = ttk.Style(root)
+    if "clam" in style.theme_names():
+        style.theme_use("clam")
+
+    style.configure(".", background=BG_APP, foreground=FG_TEXT, font=FONT_NORMAL)
+    style.configure("TFrame", background=BG_APP)
+    style.configure(
+        "TLabelframe",
+        background=BG_PANEL,
+        bordercolor=BORDER_COLOR,
+        darkcolor=BORDER_COLOR,
+        lightcolor=BORDER_COLOR,
+        borderwidth=1,
+    )
+    style.configure("TLabelframe.Label", background=BG_PANEL, foreground=CYAN_GLOW, font=FONT_SUBTITLE)
+    style.configure("TLabel", background=BG_APP, foreground=FG_TEXT, font=FONT_NORMAL)
+    style.configure("TCheckbutton", background=BG_APP, foreground=FG_TEXT, font=FONT_NORMAL)
+    style.configure("TCombobox", fieldbackground=BG_INPUT, background=BG_PANEL, foreground=FG_TEXT, font=FONT_NORMAL)
+    style.configure("TSpinbox", fieldbackground=BG_INPUT, background=BG_PANEL, foreground=FG_TEXT, font=FONT_NORMAL)
+    style.configure("TEntry", fieldbackground=BG_INPUT, foreground=FG_TEXT, font=FONT_NORMAL)
+    
+    style.configure("TNotebook", background=BG_PANEL, borderwidth=0)
+    style.configure("TNotebook.Tab", background=BG_PANEL, foreground=FG_SUBTEXT, font=FONT_SUBTITLE, padding=(12, 6))
+    style.map("TNotebook.Tab", background=[("selected", ACCENT)], foreground=[("selected", "#ffffff")])
+
+    # Estilos customizados para Botões TTK
+    style.configure("Action.TButton", background=SUCCESS, foreground="#ffffff", font=FONT_SUBTITLE, padding=(12, 6), borderwidth=0)
+    style.map("Action.TButton", background=[("active", SUCCESS_HOVER)])
+
+    style.configure("Primary.TButton", background=ACCENT, foreground="#ffffff", font=FONT_SUBTITLE, padding=(10, 5), borderwidth=0)
+    style.map("Primary.TButton", background=[("active", ACCENT_HOVER)])
+
+    style.configure("Danger.TButton", background=DANGER, foreground="#ffffff", font=FONT_SUBTITLE, padding=(10, 5), borderwidth=0)
+    style.map("Danger.TButton", background=[("active", DANGER_HOVER)])
+
+    style.configure("Secondary.TButton", background=BG_INPUT, foreground=FG_TEXT, font=FONT_NORMAL, padding=(8, 4), borderwidth=0)
+    style.map("Secondary.TButton", background=[("active", BORDER_COLOR)], foreground=[("active", CYAN_GLOW)])
+

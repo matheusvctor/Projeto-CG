@@ -8,6 +8,16 @@ import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import messagebox, ttk
 
+import os
+import sys
+_dir_modulo = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_dir_raiz = os.path.abspath(os.path.join(_dir_modulo, ".."))
+if _dir_modulo not in sys.path:
+    sys.path.insert(0, _dir_modulo)
+if _dir_raiz not in sys.path:
+    sys.path.insert(0, _dir_raiz)
+
+import theme
 from core.cg_utils import QuadroDesenho, Viewport, normalizar_janela, sutherland_hodgman_clip_trace
 
 Point = tuple[float, float]
@@ -17,6 +27,7 @@ class AppSutherlandHodgman:
     def __init__(self, root, on_back=None):
         """Interface para recortar polígonos e acompanhar cada etapa do algoritmo."""
         self.on_back = on_back
+        theme.configure_ttk_styles(root)
         self.zoom = tk.IntVar(value=1)
         self.vertex_x = tk.StringVar(value="0")
         self.vertex_y = tk.StringVar(value="0")
@@ -28,8 +39,13 @@ class AppSutherlandHodgman:
         self.show_vertex_markers_var = tk.BooleanVar(value=True)
         self.show_vertex_values_var = tk.BooleanVar(value=True)
         self.show_intersections_var = tk.BooleanVar(value=True)
+        self.interactive_draw_mode = False
         self.status_var = tk.StringVar(
-            value="Defina a janela, informe os vertices e visualize o poligono original e o recortado."
+            value="Dica: adicione pontos pelos campos, clique com o botão esquerdo para adicionar na tela ou carregue um exemplo."
+        )
+        self.summary_title_var = tk.StringVar(value="Resumo do processamento")
+        self.summary_body_var = tk.StringVar(
+            value="Nenhum recorte executado ainda. Clique em 'Recortar' para processar o polígono atual."
         )
 
         self._last = None
@@ -43,72 +59,63 @@ class AppSutherlandHodgman:
 
     def _build_ui(self, root):
         """Monta todos os painéis de entrada, desenho, resumo e log da questão."""
-        nav = ttk.Frame(root)
-        nav.pack(fill=tk.X, padx=10, pady=(8, 2))
-        ttk.Button(nav, text="<- Voltar", command=self._voltar).pack(side=tk.LEFT)
-        ttk.Label(nav, text="Questao 2 - Sutherland-Hodgman", font=("Segoe UI", 12, "bold")).pack(side=tk.RIGHT)
-
-        controls = ttk.Frame(root, padding=(10, 6, 10, 6))
+        controls = tk.Frame(root, bg=theme.BG_PANEL, padx=10, pady=8)
         controls.pack(fill=tk.X)
-        controls.columnconfigure(0, weight=1)
-        controls.columnconfigure(1, weight=0)
-        controls.columnconfigure(2, weight=0)
 
-        polygon_frame = ttk.LabelFrame(controls, text="Poligono")
-        polygon_frame.grid(row=0, column=0, sticky="ew", padx=(0, 12))
+        if callable(self.on_back):
+            theme.make_btn(controls, "◀ Voltar", self.on_back, "primary", padx=10, pady=4).pack(side=tk.LEFT, padx=(0, 10))
+
+        controls_inner = ttk.Frame(controls)
+        controls_inner.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        controls_inner.columnconfigure(0, weight=1)
+        controls_inner.columnconfigure(1, weight=0)
+        controls_inner.columnconfigure(2, weight=0)
+
+        polygon_frame = ttk.LabelFrame(controls_inner, text="Polígono de Entrada")
+        polygon_frame.grid(row=0, column=0, sticky="ew", padx=(0, 10))
         polygon_frame.columnconfigure(5, weight=1)
-        ttk.Label(polygon_frame, text="Vertices (x,y; x,y; ...):").grid(row=0, column=0, sticky="w", padx=8, pady=(8, 2))
+        ttk.Label(polygon_frame, text="Vértices (x,y; x,y; ...):").grid(row=0, column=0, sticky="w", padx=8, pady=(4, 2))
         ttk.Entry(polygon_frame, textvariable=self.vertices_text).grid(row=1, column=0, columnspan=6, sticky="ew", padx=8)
 
-        ttk.Label(polygon_frame, text="X").grid(row=2, column=0, sticky="w", padx=(8, 2), pady=(8, 2))
-        ttk.Entry(polygon_frame, textvariable=self.vertex_x, width=8).grid(row=3, column=0, sticky="w", padx=(8, 2), pady=(0, 8))
-        ttk.Label(polygon_frame, text="Y").grid(row=2, column=1, sticky="w", padx=2, pady=(8, 2))
-        ttk.Entry(polygon_frame, textvariable=self.vertex_y, width=8).grid(row=3, column=1, sticky="w", padx=2, pady=(0, 8))
-        ttk.Button(polygon_frame, text="Adicionar ponto", command=self.add_polygon_point).grid(
-            row=3, column=2, sticky="w", padx=(10, 6), pady=(0, 8)
-        )
-        ttk.Button(polygon_frame, text="Remover ultimo", command=self.remove_last_polygon_point).grid(
-            row=3, column=3, sticky="w", padx=6, pady=(0, 8)
-        )
-        self.draw_button = ttk.Button(polygon_frame, text="Desenhar na tela", command=self.toggle_draw_mode)
-        self.draw_button.grid(row=3, column=4, sticky="w", padx=6, pady=(0, 8))
+        ttk.Label(polygon_frame, text="X").grid(row=2, column=0, sticky="w", padx=(8, 2), pady=(4, 2))
+        ttk.Entry(polygon_frame, textvariable=self.vertex_x, width=6).grid(row=3, column=0, sticky="w", padx=(8, 2), pady=(0, 6))
+        ttk.Label(polygon_frame, text="Y").grid(row=2, column=1, sticky="w", padx=2, pady=(4, 2))
+        ttk.Entry(polygon_frame, textvariable=self.vertex_y, width=6).grid(row=3, column=1, sticky="w", padx=2, pady=(0, 6))
+        
+        btn_add = theme.make_btn(polygon_frame, "➕ Adicionar Ponto", self.add_polygon_point, "secondary", padx=8, pady=2)
+        btn_add.grid(row=3, column=2, sticky="w", padx=(8, 4), pady=(0, 6))
+        
+        btn_rem = theme.make_btn(polygon_frame, "➖ Remover Último", self.remove_last_polygon_point, "secondary", padx=8, pady=2)
+        btn_rem.grid(row=3, column=3, sticky="w", padx=4, pady=(0, 6))
+        
+        self.draw_button = theme.make_btn(polygon_frame, "✏ Desenhar na Tela", self.toggle_draw_mode, "primary", padx=10, pady=2)
+        self.draw_button.grid(row=3, column=4, sticky="w", padx=4, pady=(0, 6))
 
-        window_frame = ttk.LabelFrame(controls, text="Janela de recorte")
-        window_frame.grid(row=0, column=1, sticky="nw", padx=(0, 12))
+        window_frame = ttk.LabelFrame(controls_inner, text="Janela de Recorte")
+        window_frame.grid(row=0, column=1, sticky="nw", padx=(0, 10))
         self._window_field(window_frame, "X min", self.xmin, 0, 0)
         self._window_field(window_frame, "Y min", self.ymin, 0, 1)
         self._window_field(window_frame, "X max", self.xmax, 1, 0)
         self._window_field(window_frame, "Y max", self.ymax, 1, 1)
 
-        options_frame = ttk.LabelFrame(controls, text="Exibicao")
+        options_frame = ttk.LabelFrame(controls_inner, text="Ações & Exibição")
         options_frame.grid(row=0, column=2, sticky="ne")
-        ttk.Label(options_frame, text="zoom (px/unidade):").pack(anchor="w", padx=8, pady=(8, 2))
-        zoom_box = ttk.Spinbox(options_frame, from_=1, to=40, textvariable=self.zoom, width=8, command=self._on_zoom_change)
-        zoom_box.pack(anchor="w", padx=8)
+        
+        f_zoom = tk.Frame(options_frame, bg=theme.BG_PANEL)
+        f_zoom.pack(fill=tk.X, padx=6, pady=(4, 2))
+        tk.Label(f_zoom, text="Zoom:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        zoom_box = ttk.Spinbox(f_zoom, from_=1, to=40, textvariable=self.zoom, width=4, command=self._on_zoom_change)
+        zoom_box.pack(side=tk.RIGHT)
         zoom_box.bind("<Return>", lambda e: self._on_zoom_change())
         zoom_box.bind("<FocusOut>", lambda e: self._on_zoom_change())
-        ttk.Checkbutton(
-            options_frame,
-            text="Mostrar bolinhas dos vertices",
-            variable=self.show_vertex_markers_var,
-            command=self._redraw_if_possible,
-        ).pack(anchor="w", padx=8, pady=(8, 0))
-        ttk.Checkbutton(
-            options_frame,
-            text="Mostrar valores dos vertices",
-            variable=self.show_vertex_values_var,
-            command=self._redraw_if_possible,
-        ).pack(anchor="w", padx=8, pady=(2, 0))
-        ttk.Checkbutton(
-            options_frame,
-            text="Mostrar interseccoes",
-            variable=self.show_intersections_var,
-            command=self._redraw_if_possible,
-        ).pack(anchor="w", padx=8, pady=(2, 0))
-        ttk.Button(options_frame, text="Recortar", command=self.desenhar).pack(fill=tk.X, padx=8, pady=(10, 4))
-        ttk.Button(options_frame, text="Enquadrar", command=self.enquadrar).pack(fill=tk.X, padx=8, pady=4)
-        ttk.Button(options_frame, text="Exemplo", command=self.carregar_exemplo).pack(fill=tk.X, padx=8, pady=4)
-        ttk.Button(options_frame, text="Limpar", command=self.limpar).pack(fill=tk.X, padx=8, pady=(4, 8))
+        
+        f_botoes = tk.Frame(options_frame, bg=theme.BG_PANEL)
+        f_botoes.pack(fill=tk.X, padx=4, pady=(2, 4))
+        
+        theme.make_btn(f_botoes, "✂ Recortar", self.desenhar, "success", padx=8, pady=2).pack(side=tk.LEFT, padx=2)
+        theme.make_btn(f_botoes, "⤢ Enquadrar", self.enquadrar, "primary", padx=8, pady=2).pack(side=tk.LEFT, padx=2)
+        theme.make_btn(f_botoes, "📁 Exemplo", self.carregar_exemplo, "secondary", padx=8, pady=2).pack(side=tk.LEFT, padx=2)
+        theme.make_btn(f_botoes, "↺ Limpar", self.limpar, "danger", padx=8, pady=2).pack(side=tk.LEFT, padx=2)
 
         ttk.Label(root, textvariable=self.status_var, padding=(10, 2, 10, 8)).pack(anchor="w")
 

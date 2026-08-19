@@ -165,7 +165,7 @@ def calcular_centroide_atual():
     return cx/8.0, cy/8.0, cz/8.0
 
 def aplicar_transformacao_composta(matriz_op, usar_centroide=True, label="Operação"):
-    global world_transform_matrix, historico_matrizes
+    global world_transform_matrix, historico_matrizes, vp_transform_matrix
     
     log_operacao(label, matriz_op)
     
@@ -179,6 +179,8 @@ def aplicar_transformacao_composta(matriz_op, usar_centroide=True, label="Opera�
     nova_m = mat_mult(matriz_composta, world_transform_matrix)
     historico_matrizes.append(nova_m)
     world_transform_matrix = nova_m
+    # Sincronização automática em tempo real com a Viewport
+    vp_transform_matrix = [row[:] for row in world_transform_matrix]
     listbox.insert(tk.END, f"★ {label}")
     listbox.yview(tk.END)
     draw_scene()
@@ -212,10 +214,11 @@ def cmd_atualizar_vp():
     except ValueError: pass
 
 def cmd_desfazer():
-    global world_transform_matrix, historico_matrizes
+    global world_transform_matrix, vp_transform_matrix, historico_matrizes
     if len(historico_matrizes) > 1:
         historico_matrizes.pop()
         world_transform_matrix = historico_matrizes[-1]
+        vp_transform_matrix = [row[:] for row in world_transform_matrix]
         listbox.insert(tk.END, "↩ Ação desfeita")
         listbox.yview(tk.END)
         draw_scene()
@@ -233,6 +236,7 @@ def cmd_reset():
         text_log.delete("1.0", tk.END)
         text_log.config(state=tk.DISABLED)
     draw_scene()
+
 
 def cmd_como_calculamos():
     janela = tk.Toplevel(root)
@@ -267,11 +271,14 @@ def setup_tkinter():
     main_frm.pack(fill="both", expand=True)
     
     nav = tk.Frame(main_frm, bg=theme.BG_PANEL)
-    nav.pack(fill="x", padx=10, pady=(8, 2))
-    tk.Button(nav, text="◀ Voltar", command=root.destroy, bg=theme.ACCENT, fg="white", relief="flat").pack(side="left", pady=5)
+    nav = tk.Frame(main_frm, bg=theme.BG_HEADER, height=44)
+    nav.pack(fill="x", padx=0, pady=(0, 4))
+    theme.make_btn(nav, "◀ Voltar", root.destroy, "primary", padx=10, pady=4).pack(side="left", padx=10, pady=4)
+    tk.Label(nav, text="Modelagem & Transformações 3D (Regra Z+)", bg=theme.BG_HEADER, fg=theme.CYAN_GLOW, font=theme.FONT_TITLE).pack(side="left", padx=10)
 
-    controls = tk.Frame(main_frm, bg=theme.BG_PANEL, width=320, pady=10)
+    controls = tk.Frame(main_frm, bg=theme.BG_PANEL, width=320, pady=8)
     controls.pack(side="left", fill="y")
+    controls.pack_propagate(False)
 
     # Frame da Direita (Canvas de desenho + Log embaixo)
     right_frm = tk.Frame(main_frm, bg=theme.BG_CANVAS)
@@ -282,85 +289,82 @@ def setup_tkinter():
     canvas = tk.Canvas(canvas_frm, bg=theme.BG_CANVAS, highlightthickness=0)
     canvas.pack(fill="both", expand=True)
 
-    # NOVO: Painel de Log inferior
+    # Painel de Log inferior
     log_frm = tk.Frame(right_frm, bg=theme.BG_PANEL, height=130)
-    log_frm.pack(side="bottom", fill="x", padx=10, pady=(0,10))
-    tk.Label(log_frm, text="Log de Matrizes (Operações 3D):", bg=theme.BG_PANEL, fg=theme.ACCENT, font=theme.FONT_TITLE).pack(anchor="w", padx=5, pady=(5,0))
+    log_frm.pack(side="bottom", fill="x", padx=10, pady=(0, 10))
+    tk.Label(log_frm, text="Log de Matrizes & Transformações 3D:", bg=theme.BG_PANEL, fg=theme.CYAN_GLOW, font=theme.FONT_SUBTITLE).pack(anchor="w", padx=8, pady=(4, 0))
     
     scroll = tk.Scrollbar(log_frm)
     scroll.pack(side="right", fill="y")
-    text_log = tk.Text(log_frm, height=7, bg="#222222", fg="#dddddd", insertbackground="#dddddd", font=("Consolas", 10), yscrollcommand=scroll.set)
-    text_log.pack(side="left", fill="both", expand=True, padx=(5,0), pady=(0,5))
+    text_log = tk.Text(log_frm, height=6, bg=theme.BG_CANVAS, fg=theme.CYAN_GLOW, insertbackground="#dddddd", font=theme.FONT_CODE, yscrollcommand=scroll.set, relief="flat")
+    text_log.pack(side="left", fill="both", expand=True, padx=(8, 0), pady=(0, 4))
     scroll.config(command=text_log.yview)
     text_log.config(state=tk.DISABLED)
 
     # Painel Esquerdo
-    tk.Label(controls, text="PAINEL DE CONTROLE 3D", font=theme.FONT_TITLE, bg=theme.BG_PANEL, fg=theme.ACCENT).pack(pady=5)
+    tk.Label(controls, text="PAINEL DE CONTROLE 3D", font=theme.FONT_SUBTITLE, bg=theme.BG_PANEL, fg=theme.CYAN_GLOW).pack(pady=(0, 4))
 
-    f_vp = tk.LabelFrame(controls, text="Viewport (Regra Z+)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_NORMAL)
-    f_vp.pack(fill="x", pady=2, padx=10)
+    f_vp = tk.LabelFrame(controls, text="Viewport (Regra Z+)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_SUBTITLE)
+    f_vp.pack(fill="x", pady=2, padx=8)
     
     f_vp_l1 = tk.Frame(f_vp, bg=theme.BG_PANEL)
-    f_vp_l1.pack(fill="x", pady=2)
-    tk.Label(f_vp_l1, text="Xmin:", bg=theme.BG_PANEL).pack(side="left", padx=2)
-    ent_vxmin = tk.Entry(f_vp_l1, width=5); ent_vxmin.insert(0, str(Vxmin)); ent_vxmin.pack(side="left", padx=2)
-    tk.Label(f_vp_l1, text="Ymin:", bg=theme.BG_PANEL).pack(side="left", padx=2)
-    ent_vymin = tk.Entry(f_vp_l1, width=5); ent_vymin.insert(0, str(Vymin)); ent_vymin.pack(side="left", padx=2)
+    f_vp_l1.pack(fill="x", pady=1)
+    tk.Label(f_vp_l1, text="Xmin:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side="left", padx=2)
+    ent_vxmin = tk.Entry(f_vp_l1, width=4, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_vxmin.insert(0, str(Vxmin)); ent_vxmin.pack(side="left", padx=2)
+    tk.Label(f_vp_l1, text="Ymin:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side="left", padx=2)
+    ent_vymin = tk.Entry(f_vp_l1, width=4, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_vymin.insert(0, str(Vymin)); ent_vymin.pack(side="left", padx=2)
     
     f_vp_l2 = tk.Frame(f_vp, bg=theme.BG_PANEL)
-    f_vp_l2.pack(fill="x", pady=2)
-    tk.Label(f_vp_l2, text="Xmax:", bg=theme.BG_PANEL).pack(side="left", padx=2)
-    ent_vxmax = tk.Entry(f_vp_l2, width=5); ent_vxmax.insert(0, str(Vxmax)); ent_vxmax.pack(side="left", padx=2)
-    tk.Label(f_vp_l2, text="Ymax:", bg=theme.BG_PANEL).pack(side="left", padx=2)
-    ent_vymax = tk.Entry(f_vp_l2, width=5); ent_vymax.insert(0, str(Vymax)); ent_vymax.pack(side="left", padx=2)
+    f_vp_l2.pack(fill="x", pady=1)
+    tk.Label(f_vp_l2, text="Xmax:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side="left", padx=2)
+    ent_vxmax = tk.Entry(f_vp_l2, width=4, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_vxmax.insert(0, str(Vxmax)); ent_vxmax.pack(side="left", padx=2)
+    tk.Label(f_vp_l2, text="Ymax:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side="left", padx=2)
+    ent_vymax = tk.Entry(f_vp_l2, width=4, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_vymax.insert(0, str(Vymax)); ent_vymax.pack(side="left", padx=2)
     
-    tk.Button(f_vp, text="Redimensionar VP", bg=theme.ACCENT, fg="white", font=("Arial", 8), command=cmd_atualizar_vp).pack(pady=5)
+    theme.make_btn(f_vp, "📐 Redimensionar VP", cmd_atualizar_vp, "secondary", padx=6, pady=2).pack(pady=3)
 
-    f_t = tk.LabelFrame(controls, text="Translação (X, Y, Z)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_NORMAL)
-    f_t.pack(fill="x", pady=2, padx=10)
-    ent_tx = tk.Entry(f_t, width=4); ent_tx.pack(side="left", padx=2, pady=2)
-    ent_ty = tk.Entry(f_t, width=4); ent_ty.pack(side="left", padx=2, pady=2)
-    ent_tz = tk.Entry(f_t, width=4); ent_tz.pack(side="left", padx=2, pady=2)
-    tk.Button(f_t, text="Mover", bg=theme.ACCENT, fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(translate3d(float(ent_tx.get() or 0), float(ent_ty.get() or 0), float(ent_tz.get() or 0)), label="Translação T")).pack(side="right", padx=5)
+    f_t = tk.LabelFrame(controls, text="Translação (X, Y, Z)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_SUBTITLE)
+    f_t.pack(fill="x", pady=2, padx=8)
+    ent_tx = tk.Entry(f_t, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_tx.pack(side="left", padx=2, pady=2)
+    ent_ty = tk.Entry(f_t, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_ty.pack(side="left", padx=2, pady=2)
+    ent_tz = tk.Entry(f_t, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_tz.pack(side="left", padx=2, pady=2)
+    theme.make_btn(f_t, "✥ Mover", lambda: aplicar_transformacao_composta(translate3d(float(ent_tx.get() or 0), float(ent_ty.get() or 0), float(ent_tz.get() or 0)), label="Translação T"), "secondary", padx=6, pady=2).pack(side="right", padx=2)
 
-    f_s = tk.LabelFrame(controls, text="Escala (X, Y, Z)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_NORMAL)
-    f_s.pack(fill="x", pady=2, padx=10)
-    ent_sx = tk.Entry(f_s, width=4); ent_sx.insert(0,"1"); ent_sx.pack(side="left", padx=2, pady=2)
-    ent_sy = tk.Entry(f_s, width=4); ent_sy.insert(0,"1"); ent_sy.pack(side="left", padx=2, pady=2)
-    ent_sz = tk.Entry(f_s, width=4); ent_sz.insert(0,"1"); ent_sz.pack(side="left", padx=2, pady=2)
-    tk.Button(f_s, text="Escalar", bg=theme.ACCENT, fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(scale3d(float(ent_sx.get() or 1), float(ent_sy.get() or 1), float(ent_sz.get() or 1)), label="Escala S")).pack(side="right", padx=5)
+    f_s = tk.LabelFrame(controls, text="Escala (X, Y, Z)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_SUBTITLE)
+    f_s.pack(fill="x", pady=2, padx=8)
+    ent_sx = tk.Entry(f_s, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_sx.insert(0,"1"); ent_sx.pack(side="left", padx=2, pady=2)
+    ent_sy = tk.Entry(f_s, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_sy.insert(0,"1"); ent_sy.pack(side="left", padx=2, pady=2)
+    ent_sz = tk.Entry(f_s, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_sz.insert(0,"1"); ent_sz.pack(side="left", padx=2, pady=2)
+    theme.make_btn(f_s, "⤢ Escalar", lambda: aplicar_transformacao_composta(scale3d(float(ent_sx.get() or 1), float(ent_sy.get() or 1), float(ent_sz.get() or 1)), label="Escala S"), "secondary", padx=6, pady=2).pack(side="right", padx=2)
 
-    f_r = tk.LabelFrame(controls, text="Rotação (Graus)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_NORMAL)
-    f_r.pack(fill="x", pady=2, padx=10)
-    ent_rx = tk.Entry(f_r, width=4); ent_rx.grid(row=0, column=0, padx=2, pady=2)
-    tk.Button(f_r, text="Girar X", bg=theme.ACCENT, fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(rotate_x(float(ent_rx.get() or 0)), label="Rotação X")).grid(row=0, column=1, padx=2, pady=2)
-    ent_ry = tk.Entry(f_r, width=4); ent_ry.grid(row=0, column=2, padx=2, pady=2)
-    tk.Button(f_r, text="Girar Y", bg=theme.ACCENT, fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(rotate_y(float(ent_ry.get() or 0)), label="Rotação Y")).grid(row=0, column=3, padx=2, pady=2)
-    ent_rz = tk.Entry(f_r, width=4); ent_rz.grid(row=1, column=0, padx=2, pady=2)
-    tk.Button(f_r, text="Girar Z", bg=theme.ACCENT, fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(rotate_z(float(ent_rz.get() or 0)), label="Rotação Z")).grid(row=1, column=1, padx=2, pady=2)
+    f_r = tk.LabelFrame(controls, text="Rotação (Graus)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_SUBTITLE)
+    f_r.pack(fill="x", pady=2, padx=8)
+    ent_rx = tk.Entry(f_r, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_rx.grid(row=0, column=0, padx=2, pady=2)
+    theme.make_btn(f_r, "↻ X", lambda: aplicar_transformacao_composta(rotate_x(float(ent_rx.get() or 0)), label="Rotação X"), "secondary", padx=4, pady=1).grid(row=0, column=1, padx=2, pady=2)
+    ent_ry = tk.Entry(f_r, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_ry.grid(row=0, column=2, padx=2, pady=2)
+    theme.make_btn(f_r, "↻ Y", lambda: aplicar_transformacao_composta(rotate_y(float(ent_ry.get() or 0)), label="Rotação Y"), "secondary", padx=4, pady=1).grid(row=0, column=3, padx=2, pady=2)
+    ent_rz = tk.Entry(f_r, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_rz.grid(row=1, column=0, padx=2, pady=2)
+    theme.make_btn(f_r, "↻ Z", lambda: aplicar_transformacao_composta(rotate_z(float(ent_rz.get() or 0)), label="Rotação Z"), "secondary", padx=4, pady=1).grid(row=1, column=1, padx=2, pady=2)
 
-    f_ref = tk.LabelFrame(controls, text="Reflexão (Espelhar nos Eixos)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_NORMAL)
-    f_ref.pack(fill="x", pady=2, padx=10)
-    tk.Button(f_ref, text="X", bg="#007acc" , fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(reflect_x3d(), False, label="Reflexão X")).pack(side="left", padx=2, pady=2, expand=True)
-    tk.Button(f_ref, text="Y", bg="#007acc" , fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(reflect_y3d(), False, label="Reflexão Y")).pack(side="left", padx=2, pady=2, expand=True)
-    tk.Button(f_ref, text="Z", bg="#007acc" , fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(reflect_z3d(), False, label="Reflexão Z")).pack(side="left", padx=2, pady=2, expand=True)
+    f_ref = tk.LabelFrame(controls, text="Reflexão (Espelhar)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_SUBTITLE)
+    f_ref.pack(fill="x", pady=2, padx=8)
+    theme.make_btn(f_ref, "🪞 X", lambda: aplicar_transformacao_composta(reflect_x3d(), False, label="Reflexão X"), "secondary", padx=6, pady=1).pack(side="left", padx=2, pady=2, expand=True, fill="x")
+    theme.make_btn(f_ref, "🪞 Y", lambda: aplicar_transformacao_composta(reflect_y3d(), False, label="Reflexão Y"), "secondary", padx=6, pady=1).pack(side="left", padx=2, pady=2, expand=True, fill="x")
+    theme.make_btn(f_ref, "🪞 Z", lambda: aplicar_transformacao_composta(reflect_z3d(), False, label="Reflexão Z"), "secondary", padx=6, pady=1).pack(side="left", padx=2, pady=2, expand=True, fill="x")
 
-    # --- Cisalhamento ---
-    f_sh = tk.LabelFrame(controls, text="Cisalhamento (XY, XZ, YZ)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_NORMAL)
-    f_sh.pack(fill="x", pady=2, padx=10)
-    ent_shxy = tk.Entry(f_sh, width=4); ent_shxy.insert(0,"0"); ent_shxy.pack(side="left", padx=2, pady=2)
-    ent_shxz = tk.Entry(f_sh, width=4); ent_shxz.insert(0,"0"); ent_shxz.pack(side="left", padx=2, pady=2)
-    ent_shyz = tk.Entry(f_sh, width=4); ent_shyz.insert(0,"0"); ent_shyz.pack(side="left", padx=2, pady=2)
-    tk.Button(f_sh, text="Cisalhar", bg=theme.ACCENT, fg="white", font=("Arial", 8), command=lambda: aplicar_transformacao_composta(shear3d(float(ent_shxy.get() or 0), float(ent_shxz.get() or 0), 0.0, float(ent_shyz.get() or 0), 0.0, 0.0), label="Cisalhamento Sh")).pack(side="right", padx=5)
+    f_sh = tk.LabelFrame(controls, text="Cisalhamento (XY, XZ, YZ)", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_SUBTITLE)
+    f_sh.pack(fill="x", pady=2, padx=8)
+    ent_shxy = tk.Entry(f_sh, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_shxy.insert(0,"0"); ent_shxy.pack(side="left", padx=2, pady=2)
+    ent_shxz = tk.Entry(f_sh, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_shxz.insert(0,"0"); ent_shxz.pack(side="left", padx=2, pady=2)
+    ent_shyz = tk.Entry(f_sh, width=3, bg=theme.BG_INPUT, fg=theme.FG_TEXT, relief="flat"); ent_shyz.insert(0,"0"); ent_shyz.pack(side="left", padx=2, pady=2)
+    tk.Label(controls, text="● Sincronização em Tempo Real (Ativa)", font=theme.FONT_NORMAL, bg=theme.BG_PANEL, fg=theme.CYAN_GLOW).pack(pady=(4, 2))
 
-    tk.Button(controls, text="Projetar na Viewport ➔", command=cmd_enviar_viewport, bg=theme.LINE_COLOR_3D_PROC, fg="white", font=theme.FONT_TITLE).pack(pady=5, fill="x", padx=10)
+    listbox = tk.Listbox(controls, height=4, bg=theme.BG_INPUT, fg=theme.FG_TEXT, font=theme.FONT_CODE, relief="flat", highlightthickness=0)
+    listbox.pack(fill="x", pady=2, padx=8)
 
-    listbox = tk.Listbox(controls, height=4, bg="#ffffff", fg=theme.FG_TEXT, font=theme.FONT_CODE)
-    listbox.pack(fill="both", expand=True, pady=2, padx=10)
-
-    tk.Button(controls, text="Desfazer no Mundo", command=cmd_desfazer, bg="#007acc" , fg="white", font=theme.FONT_SUBTITLE).pack(pady=2, fill="x", padx=10)
-    tk.Button(controls, text="Resetar Tudo", command=cmd_reset, bg=theme.DANGER, fg="white", font=theme.FONT_SUBTITLE).pack(pady=2, fill="x", padx=10)
-    tk.Button(controls, text="Como Calculamos?", command=cmd_como_calculamos, bg=theme.ACCENT, fg="white", font=theme.FONT_SUBTITLE).pack(pady=2, fill="x", padx=10)
+    theme.make_btn(controls, "↶ Desfazer no Mundo", cmd_desfazer, "warning", padx=8, pady=3).pack(pady=2, fill="x", padx=8)
+    theme.make_btn(controls, "↺ Resetar Tudo", cmd_reset, "danger", padx=8, pady=3).pack(pady=2, fill="x", padx=8)
+    theme.make_btn(controls, "❓ Como Calculamos?", cmd_como_calculamos, "primary", padx=8, pady=3).pack(pady=2, fill="x", padx=8)
 
     draw_scene()
 

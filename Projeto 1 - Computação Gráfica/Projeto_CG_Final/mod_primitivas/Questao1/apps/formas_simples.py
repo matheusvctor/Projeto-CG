@@ -4,10 +4,21 @@ Como executar: python apps/formas_simples.py
 """
 
 import math
-from logging import root
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk
+
+# Garante acesso à raiz do projeto e à pasta do módulo (para encontrar 'core' e 'theme')
+_dir_modulo = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_dir_raiz = os.path.abspath(os.path.join(_dir_modulo, ".."))
+if _dir_modulo not in sys.path:
+    sys.path.insert(0, _dir_modulo)
+if _dir_raiz not in sys.path:
+    sys.path.insert(0, _dir_raiz)
+
 from core.cg_utils import *
+import theme
 
 def _direcao(dx, dy):
     """Resume o sentido do segmento em notação cardeal, útil para o log didático."""
@@ -31,7 +42,8 @@ def _declive_intercepto(x0, y0, x1, y1):
 class AppFormas:
     def __init__(self, root, on_back=None): 
         """Monta a interface da Questão 1 para desenhar primitivas, cônicas e Bézier."""
-        self.on_back = on_back              
+        self.on_back = on_back
+        theme.configure_ttk_styles(root)
         self.tamanho_pixel = tk.IntVar(value=1)
         self.zoom = tk.IntVar(value=1)
         self.algoritmo = tk.StringVar(value="DDA (Reta)")
@@ -51,10 +63,13 @@ class AppFormas:
         self.bx2 = tk.IntVar(value= 20); self.by2 = tk.IntVar(value=-40)
         self.bx3 = tk.IntVar(value= 50); self.by3 = tk.IntVar(value= 30)
 
-        topo = ttk.Frame(root); topo.pack(side=tk.TOP, fill=tk.X, padx=10, pady=(6,2))
-        ttk.Button(topo, text="◀ Voltar", command=self._voltar).pack(side=tk.LEFT, padx=(0,8)) 
-        ttk.Label(topo, text="Algoritmo:").pack(side=tk.LEFT)
-        cb = ttk.Combobox(topo, textvariable=self.algoritmo, state="readonly", width=30,
+        topo = tk.Frame(root, bg=theme.BG_PANEL, padx=10, pady=8)
+        topo.pack(side=tk.TOP, fill=tk.X)
+
+        theme.make_btn(topo, "◀ Voltar", self._voltar, "primary", padx=10, pady=4).pack(side=tk.LEFT, padx=(0, 10))
+        
+        tk.Label(topo, text="Algoritmo:", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_SUBTITLE).pack(side=tk.LEFT, padx=(0, 4))
+        cb = ttk.Combobox(topo, textvariable=self.algoritmo, state="readonly", width=28,
             values=[
                 "DDA (Reta)",
                 "Ponto Médio (Reta)",
@@ -66,22 +81,28 @@ class AppFormas:
                 "Hipérbole",
                 "Curva de Bézier"         
             ])
-        cb.pack(side=tk.LEFT, padx=(4,12))
+        cb.pack(side=tk.LEFT, padx=(0, 12))
         cb.bind("<<ComboboxSelected>>", lambda e: self._rebuild_inputs())
 
-        self.param_frame = ttk.Frame(topo); self.param_frame.pack(side=tk.LEFT)
+        self.param_frame = tk.Frame(topo, bg=theme.BG_PANEL)
+        self.param_frame.pack(side=tk.LEFT, padx=(0, 10))
 
-        fopt = ttk.Frame(topo); fopt.pack(side=tk.RIGHT)
-        ttk.Label(fopt, text="tamanho do pixel:").pack(side=tk.LEFT)
-        ttk.Spinbox(fopt, from_=1, to=20, textvariable=self.tamanho_pixel, width=6).pack(side=tk.LEFT, padx=(2,10))
-        ttk.Label(fopt, text="zoom (px/unidade):").pack(side=tk.LEFT)
-        sp_zoom = ttk.Spinbox(fopt, from_=1, to=40, textvariable=self.zoom, width=6, command=self._on_zoom_change)
-        sp_zoom.pack(side=tk.LEFT, padx=(2,10))
+        fopt = tk.Frame(topo, bg=theme.BG_PANEL)
+        fopt.pack(side=tk.RIGHT)
+        
+        tk.Label(fopt, text="Pixel:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        ttk.Spinbox(fopt, from_=1, to=20, textvariable=self.tamanho_pixel, width=4).pack(side=tk.LEFT, padx=(2, 8))
+        
+        tk.Label(fopt, text="Zoom:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        sp_zoom = ttk.Spinbox(fopt, from_=1, to=40, textvariable=self.zoom, width=4, command=self._on_zoom_change)
+        sp_zoom.pack(side=tk.LEFT, padx=(2, 8))
         sp_zoom.bind("<Return>", lambda e: self._on_zoom_change())
         sp_zoom.bind("<FocusOut>", lambda e: self._on_zoom_change())
-        ttk.Checkbutton(fopt, text="Anotar pontos", variable=self.anotar).pack(side=tk.LEFT)
-        ttk.Button(fopt, text="Desenhar", command=self.desenhar).pack(side=tk.LEFT, padx=6)
-        ttk.Button(fopt, text="Limpar", command=self.limpar).pack(side=tk.LEFT)
+        
+        ttk.Checkbutton(fopt, text="Anotar pontos", variable=self.anotar).pack(side=tk.LEFT, padx=(0, 8))
+        theme.make_btn(fopt, "▶ Desenhar", self.desenhar, "success", padx=12, pady=4).pack(side=tk.LEFT, padx=4)
+        theme.make_btn(fopt, "↺ Limpar", self.limpar, "danger", padx=10, pady=4).pack(side=tk.LEFT, padx=4)
+
 
         corpo = ttk.Frame(root); corpo.pack(fill=tk.BOTH, expand=True, padx=6, pady=(0,6))
 

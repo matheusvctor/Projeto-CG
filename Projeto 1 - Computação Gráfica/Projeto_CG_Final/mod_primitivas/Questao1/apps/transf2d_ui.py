@@ -1,5 +1,16 @@
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
+
+# Garante acesso à raiz do projeto e à pasta do módulo (para encontrar 'core' e 'theme')
+_dir_modulo = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_dir_raiz = os.path.abspath(os.path.join(_dir_modulo, ".."))
+if _dir_modulo not in sys.path:
+    sys.path.insert(0, _dir_modulo)
+if _dir_raiz not in sys.path:
+    sys.path.insert(0, _dir_raiz)
+
 from core.cg_utils import (
     Viewport, QuadroDesenho, registrar_quadro,
     reta_ponto_medio,
@@ -7,6 +18,7 @@ from core.cg_utils import (
     seg_origem, quadrado_origem, triangulo_origem,
     S, R, T, Sh
 )
+import theme
 
 class _Dialog2(simpledialog.Dialog):
     def __init__(self, parent, title, fields, init=None):
@@ -39,6 +51,7 @@ class AppTransf2D:
     def __init__(self, root, on_back=None):
         """Interface para montar um objeto 2D e aplicar transformações homogêneas nele."""
         self.on_back = on_back
+        theme.configure_ttk_styles(root)
         self.zoom = tk.IntVar(value=1)
         self.tamanho_pixel = tk.IntVar(value=1)
         self.objeto = tk.StringVar(value="Quadrado")
@@ -46,28 +59,41 @@ class AppTransf2D:
         self.pontos = []
         self._undo, self._redo = [], []
 
-        topo = ttk.Frame(root, padding=(8,6)); topo.pack(side=tk.TOP, fill=tk.X)
-        ttk.Button(topo, text="◀ Voltar", command=self._voltar).pack(side=tk.LEFT, padx=(0,8))
-        ttk.Label(topo, text="Coordenada X:").pack(side=tk.LEFT)
-        self.inp_x = ttk.Entry(topo, width=8); self.inp_x.pack(side=tk.LEFT, padx=(2,10))
-        ttk.Label(topo, text="Coordenada Y:").pack(side=tk.LEFT)
-        self.inp_y = ttk.Entry(topo, width=8); self.inp_y.pack(side=tk.LEFT, padx=(2,10))
-        ttk.Button(topo, text="Adicionar Ponto", command=self._add_ponto).pack(side=tk.LEFT, padx=(0,18))
-        ttk.Label(topo, text="Objeto:").pack(side=tk.LEFT)
-        ttk.Combobox(topo, textvariable=self.objeto, state="readonly", width=12,
-                     values=["Segmento","Quadrado","Triângulo"]).pack(side=tk.LEFT, padx=(2,8))
-        ttk.Label(topo, text="size (obj):").pack(side=tk.LEFT)
-        ttk.Entry(topo, textvariable=self.size_obj, width=6).pack(side=tk.LEFT, padx=(2,14))
-        ttk.Button(topo, text="Desenhar base", command=self.desenhar_base).pack(side=tk.LEFT, padx=(0,8))
-        ttk.Label(topo, text="zoom:").pack(side=tk.LEFT)
-        spz = ttk.Spinbox(topo, from_=1, to=40, textvariable=self.zoom, width=5, command=self._on_zoom_change)
-        spz.pack(side=tk.LEFT, padx=(2,8))
+        topo = tk.Frame(root, bg=theme.BG_PANEL, padx=10, pady=8)
+        topo.pack(side=tk.TOP, fill=tk.X)
+
+        theme.make_btn(topo, "◀ Voltar", self._voltar, "primary", padx=10, pady=4).pack(side=tk.LEFT, padx=(0, 10))
+        
+        tk.Label(topo, text="X:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        self.inp_x = ttk.Entry(topo, width=5)
+        self.inp_x.pack(side=tk.LEFT, padx=(2, 6))
+        
+        tk.Label(topo, text="Y:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        self.inp_y = ttk.Entry(topo, width=5)
+        self.inp_y.pack(side=tk.LEFT, padx=(2, 6))
+        
+        theme.make_btn(topo, "➕ Ponto", self._add_ponto, "secondary", padx=8, pady=3).pack(side=tk.LEFT, padx=(0, 12))
+        
+        tk.Label(topo, text="Forma:", bg=theme.BG_PANEL, fg=theme.FG_TEXT, font=theme.FONT_SUBTITLE).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Combobox(topo, textvariable=self.objeto, state="readonly", width=11,
+                     values=["Segmento", "Quadrado", "Triângulo"]).pack(side=tk.LEFT, padx=(0, 6))
+        
+        tk.Label(topo, text="Tam:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        ttk.Entry(topo, textvariable=self.size_obj, width=4).pack(side=tk.LEFT, padx=(2, 8))
+        
+        theme.make_btn(topo, "📐 Gerar Base", self.desenhar_base, "success", padx=10, pady=3).pack(side=tk.LEFT, padx=(0, 10))
+        
+        tk.Label(topo, text="Zoom:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        spz = ttk.Spinbox(topo, from_=1, to=40, textvariable=self.zoom, width=4, command=self._on_zoom_change)
+        spz.pack(side=tk.LEFT, padx=(2, 6))
         spz.bind("<Return>", lambda e: self._on_zoom_change())
         spz.bind("<FocusOut>", lambda e: self._on_zoom_change())
-        ttk.Label(topo, text="pixel:").pack(side=tk.LEFT)
-        ttk.Spinbox(topo, from_=1, to=20, textvariable=self.tamanho_pixel, width=5).pack(side=tk.LEFT)
+        
+        tk.Label(topo, text="Pixel:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        ttk.Spinbox(topo, from_=1, to=20, textvariable=self.tamanho_pixel, width=4).pack(side=tk.LEFT, padx=(2, 8))
+        
         self.mostrar_coords = tk.BooleanVar(value=True)
-        ttk.Checkbutton(topo, text="Mostrar Coords", variable=self.mostrar_coords, command=lambda: getattr(self, 'quadro', None) and self.quadro.redraw()).pack(side=tk.LEFT, padx=(8,0))
+        ttk.Checkbutton(topo, text="Coords", variable=self.mostrar_coords, command=lambda: getattr(self, 'quadro', None) and self.quadro.redraw()).pack(side=tk.LEFT, padx=(4, 0))
 
         corpo = ttk.Frame(root); corpo.pack(fill=tk.BOTH, expand=True)
 
@@ -97,19 +123,27 @@ class AppTransf2D:
         self.help.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
         self._update_help(None)
 
-        left = ttk.Frame(corpo); left.pack(side=tk.LEFT, fill=tk.Y, padx=(6,0), pady=6)
-        def bigbtn(txt, cmd):
-            b = ttk.Button(left, text=txt, command=cmd)
-            b.pack(fill=tk.X, pady=6, ipadx=10, ipady=12)
-        bigbtn("Transladar", self._dlg_transladar)
-        bigbtn("Rotacionar (Pivô)", self._dlg_rotacionar)
-        bigbtn("Escalonar (Pivô)", self._dlg_escalonar)
-        bigbtn("Cisalhar",  self._dlg_cisalhar)
-        bigbtn("Refletir",  self._dlg_refletir)
-        bigbtn("Compor Transformações 2D", self._dlg_composicao)
-        bigbtn("Desfazer Último Passo", self._desfazer)
-        bigbtn("Mostrar Viewport", self._mostrar_viewport)
-        bigbtn("Limpar",    self.limpar)
+        left = tk.Frame(corpo, bg=theme.BG_PANEL, width=220, padx=10, pady=8)
+        left.pack(side=tk.LEFT, fill=tk.Y, padx=(6, 0), pady=6)
+        left.pack_propagate(False)
+
+        tk.Label(left, text="TRANSFORMAÇÕES 2D", font=theme.FONT_SUBTITLE, bg=theme.BG_PANEL, fg=theme.CYAN_GLOW).pack(anchor="w", pady=(0, 6))
+
+        def add_action_btn(txt, cmd, btype="secondary"):
+            btn = theme.make_btn(left, txt, cmd, btype, anchor="w", padx=10, pady=6)
+            btn.pack(fill=tk.X, pady=3)
+            return btn
+
+        add_action_btn("✥  Transladar", self._dlg_transladar, "secondary")
+        add_action_btn("↻  Rotacionar (Pivô)", self._dlg_rotacionar, "secondary")
+        add_action_btn("⤢  Escalonar (Pivô)", self._dlg_escalonar, "secondary")
+        add_action_btn("⇋  Cisalhar", self._dlg_cisalhar, "secondary")
+        add_action_btn("🪞  Refletir", self._dlg_refletir, "secondary")
+        add_action_btn("⚡  Compor Matrizes 2D", self._dlg_composicao, "primary")
+        add_action_btn("👁  Mostrar Viewport", self._mostrar_viewport, "secondary")
+        add_action_btn("↶  Desfazer Passo", self._desfazer, "warning")
+        add_action_btn("↺  Limpar Tudo", self.limpar, "danger")
+
 
         bottom = ttk.Frame(root, padding=(8,6)); bottom.pack(side=tk.BOTTOM, fill=tk.X)
         self.txt_pts = tk.Text(bottom, height=6, wrap="none",

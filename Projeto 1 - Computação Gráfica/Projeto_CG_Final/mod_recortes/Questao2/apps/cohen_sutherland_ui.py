@@ -1,11 +1,20 @@
 """
 Interface da Questão 2 – recorte de janela de Cohen-Sutherland.
 """
-
 import math
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk
 
+_dir_modulo = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_dir_raiz = os.path.abspath(os.path.join(_dir_modulo, ".."))
+if _dir_modulo not in sys.path:
+    sys.path.insert(0, _dir_modulo)
+if _dir_raiz not in sys.path:
+    sys.path.insert(0, _dir_raiz)
+
+import theme
 from core.cg_utils import (
     Viewport,
     QuadroDesenho,
@@ -26,22 +35,23 @@ class AppCohenSutherland:
     def __init__(self, root, on_back=None):
         """Interface para testar recorte de segmentos com explicação passo a passo."""
         self.on_back = on_back
+        theme.configure_ttk_styles(root)
         self.tamanho_pixel = tk.IntVar(value=1)
         self.zoom = tk.IntVar(value=1)
         self.anotar = tk.BooleanVar(value=True)
 
-        self.x0 = tk.DoubleVar(value=-45)
-        self.y0 = tk.DoubleVar(value=25)
-        self.x1 = tk.DoubleVar(value=70)
-        self.y1 = tk.DoubleVar(value=-15)
+        self.x0 = tk.IntVar(value=-80)
+        self.y0 = tk.IntVar(value=-60)
+        self.x1 = tk.IntVar(value=90)
+        self.y1 = tk.IntVar(value=80)
+        self.xmin = tk.IntVar(value=-40)
+        self.ymin = tk.IntVar(value=-30)
+        self.xmax = tk.IntVar(value=50)
+        self.ymax = tk.IntVar(value=40)
 
-        self.xmin = tk.DoubleVar(value=-20)
-        self.ymin = tk.DoubleVar(value=-20)
-        self.xmax = tk.DoubleVar(value=30)
-        self.ymax = tk.DoubleVar(value=20)
-        self.angulo = tk.DoubleVar(value=0.0)
-        self.delta_angulo = tk.DoubleVar(value=5.0)
-        self.intervalo_ms = tk.IntVar(value=60)
+        self.angulo = tk.DoubleVar(value=35.0)
+        self.delta_angulo = tk.DoubleVar(value=6.0)
+        self.intervalo_ms = tk.IntVar(value=80)
         self.fator_comprimento = tk.DoubleVar(value=1.6)
 
         self._last = None
@@ -50,34 +60,38 @@ class AppCohenSutherland:
         self._after_id = None
         self._frame = 0
 
-        topo = ttk.Frame(root)
-        topo.pack(side=tk.TOP, fill=tk.X, padx=10, pady=(6, 2))
+        topo = tk.Frame(root, bg=theme.BG_PANEL, padx=10, pady=8)
+        topo.pack(side=tk.TOP, fill=tk.X)
 
-        ttk.Button(topo, text="◀ Voltar", command=self._voltar).pack(side=tk.LEFT, padx=(0, 8))
-        self.param_frame = ttk.Frame(topo)
+        theme.make_btn(topo, "◀ Voltar", self._voltar, "primary", padx=10, pady=4).pack(side=tk.LEFT, padx=(0, 10))
+        self.param_frame = tk.Frame(topo, bg=theme.BG_PANEL)
         self.param_frame.pack(side=tk.LEFT)
         self._row("P0 (x,y):", self.x0, self.y0)
         self._row("P1 (x,y):", self.x1, self.y1)
-        self._row("Janela xmin,ymin:", self.xmin, self.ymin)
-        self._row("Janela xmax,ymax:", self.xmax, self.ymax)
-        self._row("Ang/passo:", self.angulo, self.delta_angulo)
-        self._row("ms/fator:", self.intervalo_ms, self.fator_comprimento)
+        self._row("Janela Min:", self.xmin, self.ymin)
+        self._row("Janela Max:", self.xmax, self.ymax)
+        self._row("Âng/Passo:", self.angulo, self.delta_angulo)
+        self._row("ms/Fator:", self.intervalo_ms, self.fator_comprimento)
 
-        fopt = ttk.Frame(topo)
+        fopt = tk.Frame(topo, bg=theme.BG_PANEL)
         fopt.pack(side=tk.RIGHT)
-        ttk.Label(fopt, text="tamanho do pixel:").pack(side=tk.LEFT)
-        ttk.Spinbox(fopt, from_=1, to=20, textvariable=self.tamanho_pixel, width=6).pack(side=tk.LEFT, padx=(2, 10))
-        ttk.Label(fopt, text="zoom (px/unidade):").pack(side=tk.LEFT)
-        sp_zoom = ttk.Spinbox(fopt, from_=1, to=40, textvariable=self.zoom, width=6, command=self._on_zoom_change)
-        sp_zoom.pack(side=tk.LEFT, padx=(2, 10))
+        
+        tk.Label(fopt, text="Pixel:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        ttk.Spinbox(fopt, from_=1, to=20, textvariable=self.tamanho_pixel, width=4).pack(side=tk.LEFT, padx=(2, 6))
+        
+        tk.Label(fopt, text="Zoom:", bg=theme.BG_PANEL, fg=theme.FG_SUBTEXT, font=theme.FONT_NORMAL).pack(side=tk.LEFT)
+        sp_zoom = ttk.Spinbox(fopt, from_=1, to=40, textvariable=self.zoom, width=4, command=self._on_zoom_change)
+        sp_zoom.pack(side=tk.LEFT, padx=(2, 6))
         sp_zoom.bind("<Return>", lambda e: self._on_zoom_change())
         sp_zoom.bind("<FocusOut>", lambda e: self._on_zoom_change())
-        ttk.Checkbutton(fopt, text="Anotar pontos", variable=self.anotar, command=self._redraw_if_possible).pack(side=tk.LEFT)
-        ttk.Button(fopt, text="Exemplo", command=self.carregar_exemplo).pack(side=tk.LEFT, padx=6)
-        ttk.Button(fopt, text="Recortar", command=self.desenhar).pack(side=tk.LEFT, padx=6)
-        ttk.Button(fopt, text="Animar", command=self.iniciar_animacao).pack(side=tk.LEFT, padx=6)
-        ttk.Button(fopt, text="Parar", command=self.parar_animacao).pack(side=tk.LEFT)
-        ttk.Button(fopt, text="Limpar", command=self.limpar).pack(side=tk.LEFT)
+        
+        ttk.Checkbutton(fopt, text="Anotar", variable=self.anotar, command=self._redraw_if_possible).pack(side=tk.LEFT, padx=(2, 6))
+        
+        theme.make_btn(fopt, "📁 Exemplo", self.carregar_exemplo, "secondary", padx=8, pady=3).pack(side=tk.LEFT, padx=2)
+        theme.make_btn(fopt, "✂ Recortar", self.desenhar, "success", padx=10, pady=3).pack(side=tk.LEFT, padx=2)
+        theme.make_btn(fopt, "▶ Animar", self.iniciar_animacao, "primary", padx=8, pady=3).pack(side=tk.LEFT, padx=2)
+        theme.make_btn(fopt, "⏹ Parar", self.parar_animacao, "warning", padx=8, pady=3).pack(side=tk.LEFT, padx=2)
+        theme.make_btn(fopt, "↺ Limpar", self.limpar, "danger", padx=8, pady=3).pack(side=tk.LEFT, padx=2)
 
         corpo = ttk.Frame(root)
         corpo.pack(fill=tk.BOTH, expand=True, padx=6, pady=(0, 6))
