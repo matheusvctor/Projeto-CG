@@ -26,7 +26,7 @@ def _obter_pasta_assets_morfismo() -> Path:
         return candidato
 
     # Procura dentro da subpasta PI
-    candidato = Path.cwd() / "Projeto 2 - Processamento de Imagens" / "PI" / "assets" / "morfismo"
+    candidato = Path.cwd() / "Projeto - Processamento de Imagens" / "PI" / "assets" / "morfismo"
     if candidato.exists():
         return candidato
 
