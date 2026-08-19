@@ -1,0 +1,293 @@
+626 Álgebra Linear com Aplicações                                  retas, no sentido de soma de mínimos quadrados. Mostre que
+                                                                   x* e y* são soluções do sistema
+T2. (Requer cálculo) Dado o conjunto de equações
+                               ak x  bk y  ck                      e
+
+     com k  1, 2, 3, . . . , n (e n  2), considere o algoritmo de
+     mínimos quadrados seguinte para obter uma solução apro-
+     ximada (x*, y*) do sistema. Dados um ponto (, ) e a reta
+     ai x  bi y  ci , a distância desse ponto à reta é dada por
+
+Definindo uma função f(x, y) por                                   Aplique esse algoritmo ao sistema
+
+e determinando o ponto (x*, y*) que minimiza essa função,          e compare o resultado com o obtido nesta seção.
+obtemos o ponto que está mais próximo de cada uma dessas
+
+                                  10.13 Fractais
+
+                                  Nesta seção, utilizamos certas classes de transformações lineares para descrever e gerar
+                                  conjuntos intrincados no plano euclidiano. Esses conjuntos, denominados fractais, são
+                                  atualmente o foco de muita pesquisa matemática e científica.
+
+                                  PRÉ-REQUISITOS:  Geometria de operadores lineares de R2 (Seção 4.11)
+                                                   Espaço euclidiano Rn
+
+                                                   Logaritmos naturais
+
+                                                   Compreensão intuitiva de limites
+
+Fractais no plano euclidiano      Na Matemática do final do século XIX e do início do século XX, começaram a aparecer
+                                  vários conjuntos de pontos do plano euclidiano que eram bizarros e estranhos. Embora
+                                  tenham sido considerados curiosidades matemáticas, esses conjuntos, denominados frac-
+                                  tais, estão crescendo rapidamente em importância. Hoje, reconhecemos que eles revelam
+                                  uma regularidade em fenômenos físicos e biológicos que anteriormente eram descartados
+                                  como "aleatórios", "com ruído" ou "caóticos". Por exemplo, os fractais estão ao nosso
+                                  redor nos formatos de nuvens, montanhas, litorais, árvores e samambaias.
+
+                                       Nesta seção, descrevemos brevemente certos tipos de fractais no plano euclidiano
+                                  R2. Muito dessa descrição é devido a dois matemáticos, Benoit B. Mandelbrot e Michael
+                                  Barnsley, ambos pesquisadores ativos nessa área.
+
+Conjuntos autossimilares          Para começar nosso estudo de fractais, precisamos introduzir alguma terminologia relati-
+                                  va a conjuntos em R2. Dizemos que um conjunto em R2 é limitado se puder ser englobado
+
+                                  num círculo suficientemente grande (Figura 10.13.1), e dizemos que um conjunto é fe-
+
+                                  chado se contiver todos os seus pontos de fronteira (Figura 10.13.2). Dois conjuntos em
+                                  R2 são ditos congruentes se pudermos fazê-los coincidir exatamente usando translações e
+
+                                  rotações apropriadas do plano (Figura 10.13.3). Também vamos contar com a percepção
+
+                                  intuitiva do leitor para distinguir entre conjuntos sobrepostos e não sobrepostos, confor-
+
+                                  me ilustrado na Figura 10.13.4.
+                                       Se T : R2  R2 for o operador linear que modifica a escala pelo fator s (ver Tabela 7 da
+
+                                  Seção 4.9) e Q for um conjunto em R2, então o conjunto T(Q), ou seja, o conjunto forma-
+
+                                  do pelas imagens dos pontos de Q por T, é denominado uma dilatação do conjunto Q se
+                                  s  1 e uma contração de Q se 0  s  1 (Figura 10.13.5). Em ambos os casos, dizemos
+                                  que T(Q) é uma homotetia de Q de fator s.
+                                                                                                  10.13 Fractais 627
+
+                     y                  Círculo que               y
+
+                                        engloba
+
+                        Conjunto                                     Conjunto ilimitado
+                        limitado
+
+                                        x                                                x
+
+                 (a) Um conjunto englobado                     (b) Esse conjunto não pode ser
+
+ Figura 10.13.1         por um círculo                               englobado por círculos    y
+
+y
+
+          Conjunto                                   y                                                                                       x
+          fechado
+                                                                    Conjuntos                           (a) Conjuntos sobrepostos
+                                     x                             congruentes
+                                                                                                              y
+ Figura 10.13.2 Os                                                                 x
+pontos de fronteira (linha                                                                                                                   x
+mais forte) fazem parte                      Figura 10.13.3
+do conjunto.                                                                                            (b) Conjuntos não sobrepostos
+                                                                         y                          Figura 10.13.4
+                     y
+                                                                                         x
+                        Q               ( ) T        x  =  s0  x     T(Q)
+                                                     y     0s  y
+
+ Figura 10.13.5                             x
+Uma contração de Q.
+
+Os tipos de fractais que consideramos inicialmente são autossimilares. Em geral, defini-
+mos um conjunto autossimilar em R2 como segue.
+
+DEFINIÇÃO 1 Um subconjunto fechado e limitado do plano euclidiano R2 é dito au-
+tossimilar se puder ser descrito da forma
+
+                        S  S1  S2  S3  · · ·  Sk                                         (1)
+
+em que S1 , S2 , S3 , . . . , Sk são conjuntos não sobrepostos, cada um dos quais é con-
+gruente à contração de S de mesmo fator s (0  s  1).
+
+Se S for um conjunto autossimilar, então dizemos que (1) é uma decomposição de S em
+conjuntos congruentes não sobrepostos.
+
+ E X E M P L O 1 Segmento de reta                                                                              (a)
+Um segmento de reta em R2 (Figura 10.13.6a) pode ser expresso como a união de dois
+segmentos de reta congruentes e não sobrepostos (Figura 10.13.6b). Na Figura 10.13.6b,                         (b)
+separamos ligeiramente os dois segmentos de reta para facilitar sua visualização. Cada             Figura 10.13.6
+um desses dois segmentos menores é congruente à contração do segmento original pelo
+fator . Desse modo, um segmento de reta é um conjunto autossimilar com k  2 e .
+628 Álgebra Linear com Aplicações
+
+                                           E X E M P L O 2 Quadrado
+                                          Um quadrado (Figura 10.13.7a) pode ser expresso como a união de quatro quadrados con-
+                                          gruentes e não sobrepostos (Figura 10.13.7b), onde de novo separamos ligeiramente os
+                                          quatro quadrados. Cada um dos quatro quadrados é congruente à contração do quadrado
+                                          original pelo fator . Desse modo, um quadrado é um conjunto autossimilar com k  4 e .
+
+(a)                E X E M P L O 3 Tapete de Sierpinski
+
+                  O conjunto sugerido na Figura 10.13.8a foi descrito primeiro pelo matemático polonês
+
+                  Waclaw Sierpinski (1882­1969). Esse conjunto pode ser expresso como a união de oito
+
+                  subconjuntos congruentes e não sobrepostos (Figura 10.13.8b), cada um dos quais é con-
+
+                  gruente à contração do conjunto original pelo fator . Desse modo, esse conjunto é um
+
+                  conjunto autossimilar com k  8 e . Note que o padrão intrincado de quadrados dentro de
+
+                  quadrados continua para sempre em escala cada vez menor (embora isso somente possa
+
+                  ser sugerido por uma figura como a dada).
+
+             (b)
+ Figura 10.13.7
+
+                  (a)                                        (b)
+
+                   Figura 10.13.8
+
+                   E X E M P L O 4 Triângulo de Sierpinski
+
+                  A Figura 10.13.9a ilustra um outro conjunto devido a Sierpinski. Esse conjunto é um
+                  conjunto autossimilar com k  3 e (Figura 10.13.9b). Como ocorre com o tapete de
+                  Sierpinski, o padrão intrincado de triângulos dentro de triângulos continua para sempre
+                  em escala cada vez menor. 
+
+                  (a)                                        (b)
+
+                   Figura 10.13.9
+
+                       O tapete e o triângulo de Sierpinski têm uma estrutura mais complexa que o segmento
+                  de reta e o quadrado, pois exibem um padrão repetido indefinidamente. Essa diferença
+                  será explorada mais adiante.
+
+Dimensão topológica de um Na Seção 4.5, definimos a dimensão de um subespaço de um espaço vetorial como o
+                         conjunto número de vetores de uma base e descobrimos que essa definição coincide com nossa
+                                                                                                            10.13 Fractais 629
+
+ideia intuitiva de dimensão. Por exemplo, a origem em R2 tem dimensão zero, as retas
+pela origem são unidimensionais e o espaço R2 todo é bidimensional. Essa definição de
+
+dimensão é um caso especial de um conceito mais geral denominado dimensão topo-
+lógica, que é aplicável a subconjuntos de Rn que não necessariamente são subespaços.
+
+Uma definição precisa desse conceito é estudada numa área da Matemática denominada
+
+Topologia. Embora essa definição fuja do escopo deste texto, podemos enunciar infor-
+
+malmente que
+
+· um ponto em R2 tem dimensão topológica zero;
+· uma curva em R2 tem dimensão topológica um;
+· uma região em R2 tem dimensão topológica dois.
+
+Pode ser provado que a dimensão topológica de um conjunto em Rn é um número inteiro
+
+entre 0 e n, inclusive. Neste texto, denotamos a dimensão topológica de um conjunto S Tabela 1
+
+por dT(S).                                                                                                  Conjunto S              dT (S)
+
+                                                                                                            Segmento de reta 1      1
+
+                                                                                                            Quadrado 2              2
+
+ E X E M P L O 5 Dimensão topológica de conjuntos                                                           Tapete de Sierpinski 1  1
+
+A Tabela 1 dá a dimensão topológica de cada um dos conjuntos estudados nos exemplos Triângulo de Sierpinski 1 1
+anteriores. Os primeiros dois resultados dessa tabela são intuitivamente evidentes, mas
+
+não os dois últimos. Enunciado informalmente, ambos o tapete e o triângulo de Sierpinski
+
+têm tantos "buracos" que mais parecem estruturas de redes de segmentos de retas do que
+
+regiões do plano e, portanto, têm dimensão topológica igual a um. A prova disso não é
+
+nada fácil. 
+
+Em 1919, o matemático alemão Felix Hausdorff (1868­1942) deu uma definição alterna-                         Dimensão de Hausdorff de
+tiva para a dimensão de conjuntos arbitrários de Rn. Sua definição é bastante complicada,                   um conjunto autossimilar
+
+mas, para conjuntos autossimilares, reduz-se a algo bem simples.
+
+DEFINIÇÃO 2 A dimensão de Hausdorff de um conjunto autossimilar S do formato
+(1) é denotada por dH(S) e é definida por
+
+                                                                                                    (2)
+
+Nesta definição, "ln" denota a função logaritmo natural. A Equação (2) também pode ser
+escrita como
+
+                                                                                 (3)
+
+na qual a dimensão de Hausdorff dH(S) aparece como um expoente. A Fórmula (3) é mais
+útil para interpretar o conceito de dimensão de Hausdorff; essa fórmula diz, por exemplo,
+
+que, se contrairmos um conjunto autossimilar pelo fator s  , então sua área (ou, mais
+corretamente, sua medida) decresce por um fator . dH(S) Assim, contraindo um segmento
+
+de reta pelo fator , sua medida (comprimento) diminuirá por um fator             , e con-
+
+traindo uma região quadrada pelo fator , sua medida (área) diminuirá pelo fator                          .
+
+Antes de passar aos exemplos, devemos apresentar alguns fatos sobre a dimensão de
+
+Hausdorff de um conjunto, como segue.
+
+· As dimensões topológica e de Hausdorff de um conjunto não precisam coincidir.
+· A dimensão de Hausdorff de um conjunto não precisa ser um número inteiro.
+· A dimensão topológica de um conjunto é menor do que ou igual a sua dimensão de
+
+   Hausdorff, ou seja, dT (S)  dH (S).
+630 Álgebra Linear com Aplicações
+
+                                           E X E M P L O 6 Dimensão de Hausdorff de conjuntos
+                                          A Tabela 2 dá a dimensão de Hausdorff de cada um dos conjuntos estudados nos exem-
+                                          plos anteriores.
+
+          Tabela 2                 sk
+                   Conjunto S
+
+          Segmento de reta         2 ln 2/ln 2  1
+          Quadrado
+          Tapete de Sierpinski     4 ln 4/ln 2  2
+          Triângulo de Sierpinski
+                                   8 ln 8/ln 3  1,892 . . .
+
+                                   3 ln 3/ln 2  1,584 . . .
+
+                                                                 
+
+Fractais  Comparando as Tabelas 1 e 2, vemos que as dimensões de Hausdorff e topológica coin-
+          cidem no segmento de reta e no quadrado, mas são desiguais no tapete e no triângulo de
+          Sierpinski. Em 1977, Benoit B. Mandelbrot indicou que conjuntos nos quais a dimensão
+          topológica e a de Hausdorff diferem devem ser bem complicados (como Hausdorff já
+          havia sugerido antes, em 1919). Mandelbrot propôs denominar tais conjuntos de fractais
+          e ofereceu a definição seguinte.
+
+          DEFINIÇÃO 3 Um fractal é um subconjunto de um espaço euclidiano cujas dimen-
+          sões de Hausdorff e topológica não são iguais.
+
+                     De acordo com essa definição, o tapete e o triângulo de Sierpinski são fractais, enquanto
+                     o segmento de reta e o quadrado não são fractais.
+
+                           Segue da definição precedente que um conjunto cuja dimensão de Hausdorff não for
+                     um número inteiro deve ser um fractal (por quê?). Contudo, veremos adiante que a recí-
+                     proca não é verdadeira, ou seja, é possível um fractal ter dimensão de Hausdorff inteira.
+
+Semelhanças Vejamos, agora, como algumas técnicas de Álgebra Linear podem ser usadas para gerar
+                     fractais. Essa abordagem também conduz a algoritmos que podem ser explorados para
+                     desenhar fractais com computadores. Começamos com uma definição.
+
+          DEFINIÇÃO 4 Uma semelhança de fator (de escala) s é uma aplicação de R2 em R2
+          da forma
+
+           em que s, , e e f são escalares.
+
+               Geometricamente, uma semelhança é composta de três aplicações mais simples: uma
+          mudança de escala de fator s, uma rotação em torno da origem pelo ângulo  e uma trans-
+          lação (com e unidades na direção x e f unidades na direção y). A Figura 10.13.10 ilustra o
+          efeito de uma semelhança sobre o quadrado unitário U.
+
+               Nas nossas aplicações a fractais, somente utilizamos semelhanças contrativas, com o
+          que queremos dizer que o fator s da mudança de escala está restrita ao intervalo 0  s  1.
+          Consequentemente, quando nos referirmos a semelhanças, sempre estaremos pensando
+          em semelhanças sujeitas a essa restrição.
+

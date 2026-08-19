@@ -1,0 +1,22 @@
+COR_FUNDO = "#090d16"          # Obsidian escuro profundo
+COR_SIDEBAR = "#0f172a"        # Sidebar escura elegante
+COR_PAINEL = "#131d31"         # Slate/Navy escuro para cartões
+COR_PAINEL_ALT = "#1e2c47"     # Superfície de controles e entradas
+COR_DESTAQUE = "#06b6d4"       # Cyan elétrico vibrante
+COR_DESTAQUE_HOVER = "#0891b2" # Cyan escuro no hover
+COR_DESTAQUE_SUAVE = "#38bdf8" # Sky blue para realces
+COR_ACCENT_ALT = "#10b981"     # Emerald moderno para ações secundárias
+COR_INFO = "#38bdf8"           # Cyan suave
+COR_TEXTO = "#f1f5f9"          # Branco suave de alto contraste
+COR_TEXTO_MUTED = "#94a3b8"    # Texto secundário
+COR_BORDA = "#1e2c47"          # Linhas de separação e bordas
+COR_BORDA_FOCO = "#06b6d4"     # Borda ativa
+COR_SUCESSO = "#10b981"        # Emerald
+COR_AVISO = "#f59e0b"          # Amber
+COR_ERRO = "#f43f5e"           # Rose
+
+FONTE_TITULO = ("Segoe UI", 15, "bold")
+FONTE_SUBTITULO = ("Segoe UI", 10, "bold")
+FONTE_CORPO = ("Segoe UI", 9)
+FONTE_PEQUENA = ("Segoe UI", 8)
+FONTE_CODE = ("Consolas", 9)
