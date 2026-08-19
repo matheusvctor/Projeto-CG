@@ -1,6 +1,6 @@
-# ◈ Nexus PDI — Studio de Processamento Digital de Imagens
+# Projeto de Computação Gráfica — Processamento Digital de Imagens
 
-Sistema integrado de processamento, análise e manipulação digital de imagens em níveis de cinza (`.pgm`) e binárias (`.pbm`), desenvolvido em Python com interface moderna baseada em **Sidebar Navigation** e processamento matricial de alto desempenho com NumPy, SciPy e Pillow.
+Sistema integrado de processamento, análise e manipulação digital de imagens em níveis de cinza (`.pgm`), binárias (`.pbm`) e formatos universais (`.png`, `.jpg`), desenvolvido em Python com interface moderna e processamento matricial de alto desempenho com NumPy, SciPy e Pillow.
 
 ---
 
@@ -25,7 +25,7 @@ Sistema integrado de processamento, análise e manipulação digital de imagens 
 
 ## 👁️ Visão Geral
 
-O **Nexus PDI** foi projetado para fornecer um laboratório visual completo para experimentação de algoritmos clássicos e avançados de Processamento Digital de Imagens (PDI). 
+Este **projeto de computação gráfica** foi desenvolvido para fornecer um laboratório visual completo para experimentação de algoritmos clássicos e avançados de Processamento Digital de Imagens (PDI). 
 
 O sistema conta com leitura e escrita nativa de arquivos no formato **NetPBM** (sem depender de bibliotecas externas para o parsing matricial), garantindo precisão matemática pixel a pixel.
 

@@ -1,6 +1,6 @@
-# ◈ Nexus PDI — Studio de Processamento Digital de Imagens
+# Projeto de Computação Gráfica — Processamento Digital de Imagens
 
-Ambiente integrado com implementações de algoritmos fundamentais e avançados de **Processamento Digital de Imagens (PDI)** desenvolvidos em Python.
+Ambiente integrado com implementações de algoritmos fundamentais e avançados de **Computação Gráfica e Processamento Digital de Imagens (PDI)** desenvolvidos em Python.
 
 ---
 
@@ -9,13 +9,13 @@ Ambiente integrado com implementações de algoritmos fundamentais e avançados 
 ```
 Computacao-grafica-main/
 │
-└── Projeto - Processamento de Imagens/       # Nexus PDI - Digital Vision Studio
+└── Projeto - Processamento de Imagens/       # Projeto de Computação Gráfica
     └── PI/
         ├── executar_projeto.py               # Ponto de entrada do Projeto
         ├── dist/
         │   └── LaboratorioProcessamentoImagens.exe # Executável standalone independente
-        ├── assets/                           # Imagens de teste (.pgm, .pbm)
-        └── src/laboratorio_imagens/          # Módulos matemáticos e Interface com Sidebar
+        ├── assets/                           # Imagens de teste (.pgm, .pbm, etc.)
+        └── src/laboratorio_imagens/          # Módulos matemáticos e Interface com Menu Lateral
 ```
 
 ---
