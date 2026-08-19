@@ -23,9 +23,9 @@ from laboratorio_imagens.ui.widgets import GraficoHistograma, PainelImagem, Sinc
 
 
 TIPOS_IMAGEM = [
-    ("Todas as Imagens Suportadas", "*.pgm *.pbm *.png *.jpg *.jpeg *.bmp *.webp"),
-    ("Imagens Comuns (PNG, JPG)", "*.png *.jpg *.jpeg *.bmp *.webp"),
-    ("Imagens NetPBM (PGM, PBM)", "*.pgm *.pbm"),
+    ("Imagens NetPBM (*.pgm, *.pbm)", "*.pgm *.pbm"),
+    ("Imagens PGM em Tons de Cinza (*.pgm)", "*.pgm"),
+    ("Imagens PBM Binárias (*.pbm)", "*.pbm"),
     ("Todos os Arquivos", "*.*"),
 ]
 NOME_NEGATIVO_IMAGEM = "Negativo de uma imagem"
