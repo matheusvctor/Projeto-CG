@@ -38,35 +38,35 @@ TOTAL_QUADROS_GIF_EXEMPLO = 18
 ATRASO_GIF_EXEMPLO_MS = 75
 
 PONTOS_ADULTO_NORMALIZADOS = (
-    (0.50, 0.20),
-    (0.34, 0.29),
-    (0.66, 0.29),
-    (0.31, 0.44),
-    (0.69, 0.44),
-    (0.42, 0.46),
-    (0.58, 0.46),
-    (0.50, 0.56),
-    (0.44, 0.64),
-    (0.56, 0.64),
-    (0.37, 0.71),
-    (0.63, 0.71),
-    (0.50, 0.79),
+    (0.50, 0.18),  # Topo da cabeça
+    (0.32, 0.28),  # Têmpora esquerda
+    (0.68, 0.28),  # Têmpora direita
+    (0.38, 0.37),  # Olho esquerdo
+    (0.62, 0.37),  # Olho direito
+    (0.50, 0.43),  # Ponte do nariz
+    (0.50, 0.50),  # Ponta do nariz
+    (0.35, 0.54),  # Bochecha esquerda
+    (0.65, 0.54),  # Bochecha direita
+    (0.42, 0.59),  # Canto esquerdo boca
+    (0.58, 0.59),  # Canto direito boca
+    (0.50, 0.64),  # Lábio inferior
+    (0.50, 0.74),  # Queixo
 )
 
 PONTOS_CRIANCA_NORMALIZADOS = (
-    (0.50, 0.21),
-    (0.33, 0.28),
-    (0.65, 0.29),
-    (0.29, 0.45),
-    (0.69, 0.46),
-    (0.42, 0.47),
-    (0.57, 0.47),
-    (0.50, 0.56),
-    (0.45, 0.64),
-    (0.55, 0.64),
-    (0.36, 0.72),
-    (0.63, 0.73),
-    (0.50, 0.80),
+    (0.50, 0.17),  # Topo da cabeça
+    (0.33, 0.26),  # Têmpora esquerda
+    (0.67, 0.26),  # Têmpora direita
+    (0.40, 0.35),  # Olho esquerdo
+    (0.62, 0.35),  # Olho direito
+    (0.51, 0.40),  # Ponte do nariz
+    (0.51, 0.46),  # Ponta do nariz
+    (0.36, 0.51),  # Bochecha esquerda
+    (0.66, 0.51),  # Bochecha direita
+    (0.43, 0.55),  # Canto esquerdo boca
+    (0.58, 0.55),  # Canto direito boca
+    (0.51, 0.60),  # Lábio inferior
+    (0.51, 0.70),  # Queixo
 )
 
 
