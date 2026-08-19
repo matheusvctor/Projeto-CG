@@ -99,9 +99,17 @@ def preparar_morfismo(
     pontos_iniciais: list[tuple[float, float]],
     pontos_finais: list[tuple[float, float]],
 ) -> PreparacaoMorfismo:
-    if Delaunay is None:
-        raise RuntimeError("O modulo scipy nao esta disponivel para executar o morfismo.")
+    """Prepara a malha de triangulação de Delaunay para o Morfismo Temporal.
 
+    Pergunta do professor: "Como funciona o método de Morfismo de Anton & Rorres (11.21)?"
+    Resposta:
+    1. São selecionados n pontos de controle correspondentes em ambas as imagens (ex: cantos dos olhos, nariz, boca).
+    2. Adicionam-se os vértices e bordas do contorno da imagem para ancorar a deformação nas margens.
+    3. Calcula-se a FORMA MÉDIA: P_media = 0.5 * (P_inicial + P_final).
+       Por que na forma média? Para que a topologia da triangulação de Delaunay seja equilibrada
+       e não gere triângulos invertidos ou degenerados quando t varia de 0 a 1.
+    4. A triangulação de Delaunay subdivide o plano em triângulos contíguos não sobrepostos.
+    """
     base_inicial, base_final = ajustar_tamanho_para_morfismo(imagem_inicial, imagem_final)
     altura, largura = base_inicial.shape
 
@@ -111,11 +119,12 @@ def preparar_morfismo(
     controle_inicial = np.array(pontos_iniciais, dtype=np.float64) if pontos_iniciais else np.empty((0, 2))
     controle_final = np.array(pontos_finais, dtype=np.float64) if pontos_finais else np.empty((0, 2))
 
+    # Ancoragem das bordas
     contorno = _pontos_de_contorno(largura, altura)
     todos_iniciais = np.vstack([controle_inicial, contorno])
     todos_finais = np.vstack([controle_final, contorno])
 
-    # malha-base: usa a forma media para reaproveitar a triangulacao durante toda a animacao
+    # Triangulação de Delaunay sobre a geometria média
     forma_media = 0.5 * (todos_iniciais + todos_finais)
     simplices = Delaunay(forma_media).simplices
     return PreparacaoMorfismo(
@@ -128,6 +137,21 @@ def preparar_morfismo(
 
 
 def gerar_frame_preparado(preparacao: PreparacaoMorfismo, tempo: float) -> ResultadoMorfismo:
+    """Gera um frame intermediário no instante de tempo t ∈ [0, 1].
+
+    Pergunta do professor: "Como é feita a interpolação geométrica e de cor?"
+    Resposta:
+    1. GEOMETRIA: Cada vértice intermediário é interpolado linearmente:
+       P(t) = (1 - t) * P_inicial + t * P_final.
+    2. MAPEAMENTO INVERSO POR TRIÂNGULO (Coordenadas Baricêntricas):
+       Para cada pixel (x, y) dentro de um triângulo intermediário, calculam-se os pesos baricêntricos
+       (w1, w2, w3) resolvendo o sistema linear via matriz inversa.
+    3. AMOSTRAGEM:
+       (x0, y0) = w1*v1_ini + w2*v2_ini + w3*v3_ini (na imagem inicial)
+       (x1, y1) = w1*v1_fin + w2*v2_fin + w3*v3_fin (na imagem final)
+    4. DISSOLUÇÃO DE INTENSIDADE (Cross-Dissolve):
+       I(t) = (1 - t) * I_inicial(x0, y0) + t * I_final(x1, y1).
+    """
     tempo_limitado = float(np.clip(tempo, 0.0, 1.0))
     altura, largura = preparacao.base_inicial.shape
     todos_intermediarios = (

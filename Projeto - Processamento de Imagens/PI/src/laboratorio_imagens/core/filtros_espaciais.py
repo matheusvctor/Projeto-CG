@@ -38,9 +38,22 @@ FILTROS_DISPONIVEIS = [
 ]
 
 
-# mascaras base: ficam centralizadas em 3x3 para combinar com a visualizacao da interface
+# ==============================================================================
+# DEFINIÇÃO DAS MÁSCARAS E KERNELS ESPACIAIS (3x3)
+# ==============================================================================
+
+# 1. Filtro da Média (Suavização linear uniforme):
+# Cada pixel é a média aritmética de seus 8 vizinhos e de si mesmo. Normalizado por 1/9.
 MASCARA_MEDIA = np.ones((3, 3), dtype=np.float64) / 9.0
+
+# 2. Filtro da Mediana (Suavização não linear):
+# Não usa convolução/pesos! Ordena os 9 pixels da vizinhança e pega o elemento central (índice 4).
+# Elimina ruído impulsivo (Sal e Pimenta) sem borrar bordas tão agressivamente quanto a média.
 MASCARA_MEDIANA_REFERENCIA = np.ones((3, 3), dtype=np.float64)
+
+# 3. Passa-Altas Básico (Aproximação do Laplaciano / Segunda derivada discreta):
+# A soma dos pesos é 0 (ou seja, regiões homogêneas zeram e transições/bordas se destacam).
+# Centro positivo (+8) e vizinhança negativa (-1).
 MASCARA_PASSA_ALTAS_BASICO = np.array(
     [
         [-1, -1, -1],
@@ -50,11 +63,84 @@ MASCARA_PASSA_ALTAS_BASICO = np.array(
     dtype=np.float64,
 )
 
+# 4. Operador de Roberts (Diferenças simples 2x2 centralizadas em grade 3x3):
+# Derivada direcional em X (vertical) e Y (horizontal).
 MASCARA_ROBERTS_X = np.array(
     [
         [0, 0, 0],
         [0, 1, 0],
         [0, -1, 0],
+    ],
+    dtype=np.float64,
+)
+
+MASCARA_ROBERTS_Y = np.array(
+    [
+        [0, 0, 0],
+        [0, 1, -1],
+        [0, 0, 0],
+    ],
+    dtype=np.float64,
+)
+
+# 5. Roberts Cruzado (Diferenças diagonais):
+# Gx mede a diagonal principal e Gy a diagonal secundária.
+MASCARA_ROBERTS_CRUZADO_X = np.array(
+    [
+        [0, 0, 0],
+        [0, 1, 0],
+        [0, 0, -1],
+    ],
+    dtype=np.float64,
+)
+
+MASCARA_ROBERTS_CRUZADO_Y = np.array(
+    [
+        [0, 0, 0],
+        [0, 0, 1],
+        [0, -1, 0],
+    ],
+    dtype=np.float64,
+)
+
+# 6. Operador de Prewitt (Gradiente com aproximação de primeira derivada e média):
+# Prewitt X detecta bordas horizontais (diferença entre linhas superior e inferior).
+# Prewitt Y detecta bordas verticais (diferença entre colunas direita e esquerda).
+MASCARA_PREWITT_X = np.array(
+    [
+        [-1, -1, -1],
+        [0, 0, 0],
+        [1, 1, 1],
+    ],
+    dtype=np.float64,
+)
+
+MASCARA_PREWITT_Y = np.array(
+    [
+        [-1, 0, 1],
+        [-1, 0, 1],
+        [-1, 0, 1],
+    ],
+    dtype=np.float64,
+)
+
+# 7. Operador de Sobel (Gradiente ponderado / suavização Gaussiana no centro):
+# Dá peso 2 ao elemento central para suavizar ruído enquanto calcula a derivada.
+# Magnitude combinada do gradiente: G = sqrt(Gx^2 + Gy^2) ou |Gx| + |Gy|.
+MASCARA_SOBEL_X = np.array(
+    [
+        [-1, -2, -1],
+        [0, 0, 0],
+        [1, 2, 1],
+    ],
+    dtype=np.float64,
+)
+
+MASCARA_SOBEL_Y = np.array(
+    [
+        [-1, 0, 1],
+        [-2, 0, 2],
+        [-1, 0, 1],
     ],
     dtype=np.float64,
 )

@@ -54,6 +54,13 @@ MASCARAS_HIT_OR_MISS = {
 
 
 def dilatacao_binaria(matriz: np.ndarray, elemento_estruturante: np.ndarray) -> np.ndarray:
+    """Dilatação binária: (A ⊕ B).
+
+    Pergunta do professor: "Como funciona a dilatação binária?"
+    Resposta: Expande os objetos brancos (1/255). Se PELO MENOS UM pixel sob o elemento
+    estruturante for 1 (operador lógico OR / np.any), o pixel central de saída torna-se 255.
+    Efeito: Preenche pequenos buracos e une descontinuidades.
+    """
     janelas = janelas_binarias(matriz, elemento_estruturante)
     mascara = np.asarray(elemento_estruturante, dtype=bool)
     resultado = np.any(janelas[..., mascara], axis=-1)
@@ -61,6 +68,13 @@ def dilatacao_binaria(matriz: np.ndarray, elemento_estruturante: np.ndarray) -> 
 
 
 def erosao_binaria(matriz: np.ndarray, elemento_estruturante: np.ndarray) -> np.ndarray:
+    """Erosão binária: (A ⊖ B).
+
+    Pergunta do professor: "Como funciona a erosão binária?"
+    Resposta: Encolhe os objetos brancos. Somente se TODOS os pixels sob o elemento
+    estruturante forem 1 (operador lógico AND / np.all), o pixel central de saída torna-se 255.
+    Efeito: Elimina ruídos isolados e afina estruturas.
+    """
     janelas = janelas_binarias(matriz, elemento_estruturante)
     mascara = np.asarray(elemento_estruturante, dtype=bool)
     resultado = np.all(janelas[..., mascara], axis=-1)
