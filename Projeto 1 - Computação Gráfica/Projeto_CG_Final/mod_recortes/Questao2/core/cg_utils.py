@@ -702,3 +702,268 @@ def cohen_sutherland_clip(x0, y0, x1, y1, xmin, ymin, xmax, ymax):
         "steps": steps,
         "intersections": intersections,
     }
+
+
+# ==============================================================================
+# ALGORITMO DE RECORTE DE POLÍGONOS DE WEILER-ATHERTON
+# ==============================================================================
+
+def _is_clockwise(poly: list[Point]) -> bool:
+    """Retorna True se os vértices estão no sentido horário no plano cartesiano padrão."""
+    if len(poly) < 3:
+        return True
+    area = 0.0
+    for i in range(len(poly)):
+        p1 = poly[i]
+        p2 = poly[(i + 1) % len(poly)]
+        area += (p2[0] - p1[0]) * (p2[1] + p1[1])
+    # No sistema cartesiano com Y para cima, soma(dx * (y1+y2)) > 0 para sentido horário
+    return area > 0
+
+
+def _seg_intersection(p1: Point, p2: Point, p3: Point, p4: Point):
+    """Calcula a interseção entre o segmento p1->p2 e p3->p4, retornando (pt, t, u) ou None."""
+    x1, y1 = p1
+    x2, y2 = p2
+    x3, y3 = p3
+    x4, y4 = p4
+    denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1)
+    if abs(denom) < 1e-12:
+        return None
+    ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom
+    ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom
+    if 0.0 <= ua <= 1.0 and 0.0 <= ub <= 1.0:
+        ix = x1 + ua * (x2 - x1)
+        iy = y1 + ua * (y2 - y1)
+        return (ix, iy), ua, ub
+    return None
+
+
+class _WANode:
+    def __init__(self, pt: Point, is_intersection: bool = False, is_entering: bool = False, param: float = 0.0):
+        self.pt = (round(pt[0], 6), round(pt[1], 6))
+        self.is_intersection = is_intersection
+        self.is_entering = is_entering
+        self.param = param
+        self.visited = False
+        self.next = None
+        self.neighbor = None  # Link entre a lista do sujeito e a lista da janela
+
+
+def weiler_atherton_clip_trace(
+    vertices: Iterable[Point],
+    xmin: float,
+    ymin: float,
+    xmax: float,
+    ymax: float,
+):
+    """Executa o algoritmo de Weiler-Atherton e retorna todos os sub-polígonos recortados com trace detalhado."""
+    raw_poly = _remove_redundant_vertices(list(vertices))
+    if len(raw_poly) < 3:
+        return {
+            "window": (xmin, ymin, xmax, ymax),
+            "original": raw_poly,
+            "clipped_polygons": [],
+            "intersections": [],
+            "steps": ["Polígono de entrada possui menos de 3 vértices."],
+        }
+
+    xmin, ymin, xmax, ymax = normalizar_janela(xmin, ymin, xmax, ymax)
+
+    # 1. Garante sentido horário no polígono sujeito
+    subj_poly = list(raw_poly)
+    if not _is_clockwise(subj_poly):
+        subj_poly.reverse()
+
+    # 2. Define os 4 cantos da janela em sentido horário
+    # Top-Left -> Top-Right -> Bottom-Right -> Bottom-Left
+    clip_corners = [
+        (xmin, ymax),
+        (xmax, ymax),
+        (xmax, ymin),
+        (xmin, ymin),
+    ]
+
+    def _is_inside(p: Point) -> bool:
+        return (xmin - 1e-7 <= p[0] <= xmax + 1e-7) and (ymin - 1e-7 <= p[1] <= ymax + 1e-7)
+
+    steps = [
+        f"1. Polígono de entrada normalizado ({len(subj_poly)} vértices, orientado em sentido horário).",
+        f"2. Janela de recorte: [{xmin:.2f}, {ymin:.2f}] até [{xmax:.2f}, {ymax:.2f}].",
+    ]
+
+    # Constrói as listas de arestas
+    subj_edges = [(subj_poly[i], subj_poly[(i + 1) % len(subj_poly)]) for i in range(len(subj_poly))]
+    clip_edges = [(clip_corners[i], clip_corners[(i + 1) % len(clip_corners)]) for i in range(4)]
+
+    # Coleta todas as interseções para cada aresta
+    subj_intersections = [[] for _ in range(len(subj_edges))]
+    clip_intersections = [[] for _ in range(4)]
+    all_intersections_info = []
+
+    for s_idx, (sp1, sp2) in enumerate(subj_edges):
+        for c_idx, (cp1, cp2) in enumerate(clip_edges):
+            res = _seg_intersection(sp1, sp2, cp1, cp2)
+            if res is not None:
+                ipt, t_s, t_c = res
+                # Classifica se é entrada ou saída
+                # Se o ponto anterior sp1 estava fora e agora vai para dentro -> Entrada
+                # Se sp1 estava dentro e vai para fora -> Saída
+                p_before = (sp1[0] + (t_s - 1e-4) * (sp2[0] - sp1[0]), sp1[1] + (t_s - 1e-4) * (sp2[1] - sp1[1]))
+                p_after = (sp1[0] + (t_s + 1e-4) * (sp2[0] - sp1[0]), sp1[1] + (t_s + 1e-4) * (sp2[1] - sp1[1]))
+                
+                is_entering = (not _is_inside(p_before)) and _is_inside(p_after)
+                
+                tipo = "ENTRADA" if is_entering else "SAÍDA"
+                all_intersections_info.append((ipt, tipo, s_idx, c_idx))
+                steps.append(f"➔ Interseção em ({ipt[0]:.2f}, {ipt[1]:.2f}) - Classificada como: {tipo}")
+                
+                subj_intersections[s_idx].append((t_s, ipt, is_entering, c_idx, t_c))
+                clip_intersections[c_idx].append((t_c, ipt, is_entering, s_idx, t_s))
+
+    # Casos triviais sem interseção
+    if not all_intersections_info:
+        all_inside = all(_is_inside(p) for p in subj_poly)
+        if all_inside:
+            steps.append("3. Caso Trivial: Todo o polígono está completamente dentro da janela.")
+            return {
+                "window": (xmin, ymin, xmax, ymax),
+                "original": raw_poly,
+                "clipped_polygons": [subj_poly],
+                "intersections": [],
+                "steps": steps,
+            }
+        
+        # Testa se a janela está inteiramente dentro do polígono
+        # Usando ray-casting no centro da janela
+        w_center = ((xmin + xmax) / 2.0, (ymin + ymax) / 2.0)
+        # Se centro da janela estiver dentro do polígono, a janela é o resultado
+        wn = 0
+        for i in range(len(subj_poly)):
+            p1 = subj_poly[i]
+            p2 = subj_poly[(i + 1) % len(subj_poly)]
+            if p1[1] <= w_center[1]:
+                if p2[1] > w_center[1]:
+                    if (p2[0] - p1[0]) * (w_center[1] - p1[1]) - (w_center[0] - p1[0]) * (p2[1] - p1[1]) > 0:
+                        wn += 1
+            else:
+                if p2[1] <= w_center[1]:
+                    if (p2[0] - p1[0]) * (w_center[1] - p1[1]) - (w_center[0] - p1[0]) * (p2[1] - p1[1]) < 0:
+                        wn -= 1
+        if wn != 0:
+            steps.append("3. Caso Trivial: A janela de recorte está completamente dentro do polígono.")
+            return {
+                "window": (xmin, ymin, xmax, ymax),
+                "original": raw_poly,
+                "clipped_polygons": [clip_corners],
+                "intersections": [],
+                "steps": steps,
+            }
+
+        steps.append("3. Caso Trivial: O polígono está totalmente fora da janela de recorte.")
+        return {
+            "window": (xmin, ymin, xmax, ymax),
+            "original": raw_poly,
+            "clipped_polygons": [],
+            "intersections": [],
+            "steps": steps,
+        }
+
+    # 3. Constrói a lista encadeada circular do Polígono Sujeito
+    subj_nodes = []
+    for s_idx, (sp1, sp2) in enumerate(subj_edges):
+        subj_nodes.append(_WANode(sp1, is_intersection=False))
+        # Ordena interseções da aresta pelo parâmetro t_s
+        inter_sorted = sorted(subj_intersections[s_idx], key=lambda x: x[0])
+        for t_s, ipt, is_entering, c_idx, t_c in inter_sorted:
+            node = _WANode(ipt, is_intersection=True, is_entering=is_entering, param=t_s)
+            subj_nodes.append(node)
+
+    for i in range(len(subj_nodes)):
+        subj_nodes[i].next = subj_nodes[(i + 1) % len(subj_nodes)]
+
+    # 4. Constrói a lista encadeada circular da Janela de Recorte
+    clip_nodes = []
+    for c_idx, corner in enumerate(clip_corners):
+        clip_nodes.append(_WANode(corner, is_intersection=False))
+        # Ordena interseções na aresta da janela pelo parâmetro t_c
+        inter_sorted = sorted(clip_intersections[c_idx], key=lambda x: x[0])
+        for t_c, ipt, is_entering, s_idx, t_s in inter_sorted:
+            node = _WANode(ipt, is_intersection=True, is_entering=is_entering, param=t_c)
+            clip_nodes.append(node)
+
+    for i in range(len(clip_nodes)):
+        clip_nodes[i].next = clip_nodes[(i + 1) % len(clip_nodes)]
+
+    # 5. Conecta os nós de interseção correspondentes (vizinhos)
+    for s_node in subj_nodes:
+        if s_node.is_intersection:
+            for c_node in clip_nodes:
+                if c_node.is_intersection and abs(s_node.pt[0] - c_node.pt[0]) < 1e-4 and abs(s_node.pt[1] - c_node.pt[1]) < 1e-4:
+                    s_node.neighbor = c_node
+                    c_node.neighbor = s_node
+                    break
+
+    # 6. Travessia para extração dos sub-polígonos
+    clipped_polygons = []
+    entering_nodes = [n for n in subj_nodes if n.is_intersection and n.is_entering]
+    
+    steps.append(f"4. Total de {len(entering_nodes)} ponto(s) de entrada para iniciar travessia.")
+
+    for start_node in entering_nodes:
+        if start_node.visited:
+            continue
+
+        poly_out = []
+        curr = start_node
+        in_subject = True
+        limit = len(subj_nodes) + len(clip_nodes) + 10
+        count = 0
+
+        sub_steps = [f"Início no vértice de entrada ({curr.pt[0]:.2f}, {curr.pt[1]:.2f})"]
+
+        while count < limit:
+            count += 1
+            curr.visited = True
+            if curr.neighbor:
+                curr.neighbor.visited = True
+
+            poly_out.append(curr.pt)
+
+            if in_subject:
+                # Percorre o sujeito até achar uma SAÍDA
+                curr = curr.next
+                if curr.is_intersection and not curr.is_entering:
+                    # Alterna para a janela de recorte no nó vizinho
+                    sub_steps.append(f"Atingiu saída em ({curr.pt[0]:.2f}, {curr.pt[1]:.2f}) -> Alterna para Janela")
+                    curr.visited = True
+                    curr = curr.neighbor
+                    in_subject = False
+            else:
+                # Percorre a janela no sentido horário até achar uma ENTRADA
+                curr = curr.next
+                if curr.is_intersection and curr.is_entering:
+                    # Alterna de volta para o sujeito
+                    sub_steps.append(f"Atingiu entrada em ({curr.pt[0]:.2f}, {curr.pt[1]:.2f}) -> Retorna ao Sujeito")
+                    curr.visited = True
+                    curr = curr.neighbor
+                    in_subject = True
+
+            if curr is None or (abs(curr.pt[0] - start_node.pt[0]) < 1e-4 and abs(curr.pt[1] - start_node.pt[1]) < 1e-4):
+                break
+
+        poly_cleaned = _remove_redundant_vertices(poly_out)
+        if len(poly_cleaned) >= 3:
+            clipped_polygons.append(poly_cleaned)
+            steps.append(f"★ Sub-polígono {len(clipped_polygons)} extraído com {len(poly_cleaned)} vértices: " + " -> ".join(sub_steps))
+
+    intersections_list = [info[0] for info in all_intersections_info]
+
+    return {
+        "window": (xmin, ymin, xmax, ymax),
+        "original": raw_poly,
+        "clipped_polygons": clipped_polygons,
+        "intersections": intersections_list,
+        "steps": steps,
+    }
+

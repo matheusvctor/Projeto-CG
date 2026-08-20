@@ -447,6 +447,13 @@ class PainelImagem(ttk.LabelFrame):
             self.barra_vertical.grid_remove()
             self.barra_horizontal.grid_remove()
 
+        if self.inspector_posicao in ("none", None, False):
+            self.rotulo_info = tk.Label(bloco_imagem, text="Nenhuma imagem carregada.", bg=tema.COR_PAINEL, fg=tema.COR_TEXTO_MUTED, font=tema.FONTE_CORPO)
+            self.rotulo_info.pack(pady=(0, 0))
+            self.canvas_grade = None
+            self._desenhar_imagem_vazia()
+            return
+
         if self.inspector_posicao == "bottom":
             self.rotulo_info = tk.Label(bloco_imagem, text="Nenhuma imagem carregada.", bg=tema.COR_PAINEL, fg=tema.COR_TEXTO_MUTED, font=tema.FONTE_CORPO)
         else:
@@ -505,6 +512,8 @@ class PainelImagem(ttk.LabelFrame):
         )
 
     def _desenhar_grade_vazia(self) -> None:
+        if self.canvas_grade is None:
+            return
         self.canvas_grade.delete("all")
         self.canvas_grade.create_text(
             self._tamanho_grade_atual / 2,
@@ -548,6 +557,8 @@ class PainelImagem(ttk.LabelFrame):
         return tamanho_janela * TAMANHO_MIN_CELULA
 
     def _atualizar_canvas_grade(self) -> None:
+        if self.canvas_grade is None:
+            return
         self._tamanho_grade_atual = self._obter_tamanho_grade()
         self.canvas_grade.configure(width=self._tamanho_grade_atual, height=self._tamanho_grade_atual)
 
@@ -755,6 +766,8 @@ class PainelImagem(ttk.LabelFrame):
         self._redesenhar_canvas_imagem()
 
     def _desenhar_grade(self, janela: np.ndarray, pixel_local_x: int, pixel_local_y: int) -> None:
+        if self.canvas_grade is None:
+            return
         self.canvas_grade.delete("all")
         altura, largura = janela.shape
         if altura == 0 or largura == 0:

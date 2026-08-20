@@ -80,55 +80,55 @@ class AbaMorfologia(ttk.Frame):
         barra = ttk.Frame(self, style="Root.TFrame")
         barra.pack(fill="x", pady=(0, 12))
 
-        ttk.Button(barra, text="Carregar imagem", command=self.carregar_imagem).pack(side="left")
-        ttk.Button(barra, text="Limpar", command=self.limpar_imagens).pack(side="left", padx=(8, 0))
-        criar_seletor_janela(barra).pack(side="left", padx=(12, 0))
+        tema.make_btn(barra, "📁 Carregar Imagem", self.carregar_imagem, "primary", padx=10, pady=4).pack(side="left")
+        tema.make_btn(barra, "↺ Limpar", self.limpar_imagens, "danger", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        criar_seletor_janela(barra).pack(side="left", padx=(10, 0))
 
-        ttk.Label(barra, text="Modo:", style="Texto.TLabel").pack(side="left", padx=(12, 6))
+        ttk.Label(barra, text="Modo:", style="Texto.TLabel").pack(side="left", padx=(10, 4))
         combo_modo = ttk.Combobox(
             barra,
             textvariable=self.modo_operacao,
             values=["Binaria", "Nivel de cinza"],
             state="readonly",
-            width=16,
+            width=14,
         )
         combo_modo.pack(side="left")
         combo_modo.bind("<<ComboboxSelected>>", lambda _evento: self._ao_mudar_modo())
 
-        ttk.Label(barra, text="Operacao:", style="Texto.TLabel").pack(side="left", padx=(12, 6))
-        self.combo_operacao = ttk.Combobox(barra, textvariable=self.operacao, state="readonly", width=20)
+        ttk.Label(barra, text="Operacao:", style="Texto.TLabel").pack(side="left", padx=(10, 4))
+        self.combo_operacao = ttk.Combobox(barra, textvariable=self.operacao, state="readonly", width=18)
         self.combo_operacao.pack(side="left")
 
-        ttk.Label(barra, text="Elemento:", style="Texto.TLabel").pack(side="left", padx=(12, 6))
+        ttk.Label(barra, text="Elemento:", style="Texto.TLabel").pack(side="left", padx=(10, 4))
         ttk.Combobox(
             barra,
             textvariable=self.elemento,
             values=list(ELEMENTOS_ESTRUTURANTES.keys()),
             state="readonly",
-            width=16,
+            width=14,
         ).pack(side="left")
 
-        ttk.Label(barra, text="Limiar:", style="Texto.TLabel").pack(side="left", padx=(12, 6))
-        ttk.Entry(barra, textvariable=self.limiar, width=8).pack(side="left")
+        ttk.Label(barra, text="Limiar:", style="Texto.TLabel").pack(side="left", padx=(10, 4))
+        ttk.Entry(barra, textvariable=self.limiar, width=6).pack(side="left")
 
-        ttk.Label(barra, text="Mascara H/M:", style="Texto.TLabel").pack(side="left", padx=(12, 6))
+        ttk.Label(barra, text="Hit/Miss:", style="Texto.TLabel").pack(side="left", padx=(10, 4))
         self.combo_hit = ttk.Combobox(
             barra,
             textvariable=self.mascara_hit,
             values=list(MASCARAS_HIT_OR_MISS.keys()),
             state="readonly",
-            width=18,
+            width=16,
         )
         self.combo_hit.pack(side="left")
 
-        ttk.Button(barra, text="Aplicar", command=self.aplicar_operacao).pack(side="left", padx=(12, 0))
-        ttk.Button(barra, text="Salvar resultado", command=self.salvar_resultado).pack(side="left", padx=(8, 0))
+        tema.make_btn(barra, "▶ Aplicar Operador", self.aplicar_operacao, "success", padx=12, pady=4).pack(side="left", padx=(10, 0))
+        tema.make_btn(barra, "💾 Salvar", self.salvar_resultado, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
         ttk.Checkbutton(
             barra,
             text="Sincronizar tabelas",
             variable=self.sincronizar_tabelas,
             command=lambda: self._sincronizador_pixels.definir_habilitado(self.sincronizar_tabelas.get()),
-        ).pack(side="left", padx=(10, 0))
+        ).pack(side="left", padx=(8, 0))
 
         paineis = ttk.Frame(self, style="Root.TFrame")
         paineis.pack(fill="both", expand=True)
@@ -297,30 +297,30 @@ class AbaGeometria(ttk.Frame):
         barra = ttk.Frame(self, style="Root.TFrame")
         barra.pack(fill="x", pady=(0, 12))
 
-        ttk.Button(barra, text="Carregar imagem", command=self.carregar_imagem).pack(side="left")
-        ttk.Button(barra, text="Limpar", command=self.limpar_imagens).pack(side="left", padx=(8, 0))
-        criar_seletor_janela(barra).pack(side="left", padx=(12, 0))
-        ttk.Label(barra, text="Transformacao:", style="Texto.TLabel").pack(side="left", padx=(12, 6))
+        tema.make_btn(barra, "📁 Carregar Imagem", self.carregar_imagem, "primary", padx=10, pady=4).pack(side="left")
+        tema.make_btn(barra, "↺ Limpar", self.limpar_imagens, "danger", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        criar_seletor_janela(barra).pack(side="left", padx=(10, 0))
+        ttk.Label(barra, text="Transformacao:", style="Texto.TLabel").pack(side="left", padx=(10, 4))
 
         seletor = ttk.Combobox(
             barra,
             textvariable=self.transformacao,
             values=["Escala", "Translacao", "Reflexao", "Cisalhamento", "Rotacao"],
             state="readonly",
-            width=18,
+            width=16,
         )
         seletor.pack(side="left")
         seletor.bind("<<ComboboxSelected>>", lambda _evento: self._ao_mudar_transformacao())
 
-        ttk.Label(barra, textvariable=self.rotulo_parametro_1, style="Texto.TLabel").pack(side="left", padx=(12, 6))
-        self.entrada_1 = ttk.Entry(barra, textvariable=self.parametro_1, width=10)
+        ttk.Label(barra, textvariable=self.rotulo_parametro_1, style="Texto.TLabel").pack(side="left", padx=(10, 4))
+        self.entrada_1 = ttk.Entry(barra, textvariable=self.parametro_1, width=8)
         self.entrada_1.pack(side="left")
 
-        ttk.Label(barra, textvariable=self.rotulo_parametro_2, style="Texto.TLabel").pack(side="left", padx=(12, 6))
-        self.entrada_2 = ttk.Entry(barra, textvariable=self.parametro_2, width=10)
+        ttk.Label(barra, textvariable=self.rotulo_parametro_2, style="Texto.TLabel").pack(side="left", padx=(10, 4))
+        self.entrada_2 = ttk.Entry(barra, textvariable=self.parametro_2, width=8)
         self.entrada_2.pack(side="left")
 
-        ttk.Label(barra, text="Eixo:", style="Texto.TLabel").pack(side="left", padx=(12, 6))
+        ttk.Label(barra, text="Eixo:", style="Texto.TLabel").pack(side="left", padx=(10, 4))
         self.combo_reflexao = ttk.Combobox(
             barra,
             textvariable=self.reflexao,
@@ -330,14 +330,14 @@ class AbaGeometria(ttk.Frame):
         )
         self.combo_reflexao.pack(side="left")
 
-        ttk.Button(barra, text="Aplicar", command=self.aplicar_transformacao).pack(side="left", padx=(12, 0))
-        ttk.Button(barra, text="Salvar resultado", command=self.salvar_resultado).pack(side="left", padx=(8, 0))
+        tema.make_btn(barra, "▶ Transformar", self.aplicar_transformacao, "success", padx=12, pady=4).pack(side="left", padx=(10, 0))
+        tema.make_btn(barra, "💾 Salvar", self.salvar_resultado, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
         ttk.Checkbutton(
             barra,
             text="Sincronizar tabelas",
             variable=self.sincronizar_tabelas,
             command=lambda: self._sincronizador_pixels.definir_habilitado(self.sincronizar_tabelas.get()),
-        ).pack(side="left", padx=(10, 0))
+        ).pack(side="left", padx=(8, 0))
 
         paineis = ttk.Frame(self, style="Root.TFrame")
         paineis.pack(fill="both", expand=True)
@@ -502,17 +502,17 @@ class AbaMorfismo(ttk.Frame):
         barra = ttk.Frame(self.conteudo, style="Root.TFrame")
         barra.pack(fill="x", pady=(0, 12))
 
-        ttk.Button(barra, text="Carregar caso teste de morfismo", command=self.carregar_exemplo_luiz).pack(side="left")
-        ttk.Button(barra, text="Carregar imagem inicial", command=lambda: self._carregar("inicial")).pack(side="left", padx=(8, 0))
-        ttk.Button(barra, text="Carregar imagem final", command=lambda: self._carregar("final")).pack(side="left", padx=(8, 12))
-        ttk.Button(barra, text="Limpar", command=self.limpar_tudo).pack(side="left", padx=(0, 8))
-        criar_seletor_janela(barra).pack(side="left", padx=(0, 8))
-        ttk.Button(barra, text="Limpar pontos", command=self.limpar_pontos).pack(side="left")
-        ttk.Button(barra, text="Remover ultimo par", command=self.remover_ultimo_par).pack(side="left", padx=(8, 12))
-        ttk.Button(barra, text="Gerar frame", command=self.gerar_frame).pack(side="left")
-        ttk.Button(barra, text="Salvar frame", command=self.salvar_frame).pack(side="left", padx=(8, 0))
-        ttk.Button(barra, textvariable=self.rotulo_salvar_animacao, command=self.salvar_animacao).pack(side="left", padx=(8, 0))
-        ttk.Button(barra, text="Salvar sequencia", command=self.salvar_sequencia).pack(side="left", padx=(8, 0))
+        tema.make_btn(barra, "✨ Caso Teste", self.carregar_exemplo_luiz, "accent", padx=10, pady=4).pack(side="left")
+        tema.make_btn(barra, "📁 Inicial", lambda: self._carregar("inicial"), "primary", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        tema.make_btn(barra, "📁 Final", lambda: self._carregar("final"), "primary", padx=8, pady=4).pack(side="left", padx=(6, 10))
+        tema.make_btn(barra, "↺ Limpar Tudo", self.limpar_tudo, "danger", padx=8, pady=4).pack(side="left", padx=(0, 6))
+        criar_seletor_janela(barra).pack(side="left", padx=(0, 6))
+        tema.make_btn(barra, "↺ Limpar Pontos", self.limpar_pontos, "warning", padx=8, pady=4).pack(side="left")
+        tema.make_btn(barra, "➖ Remover Par", self.remover_ultimo_par, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 10))
+        tema.make_btn(barra, "🎬 Gerar Frame", self.gerar_frame, "success", padx=10, pady=4).pack(side="left")
+        tema.make_btn(barra, "💾 Salvar Frame", self.salvar_frame, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        tema.make_btn(barra, textvariable=self.rotulo_salvar_animacao, command=self.salvar_animacao, btn_type="secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        tema.make_btn(barra, "💾 Salvar Seq.", self.salvar_sequencia, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
 
         controles_tempo = ttk.Frame(self.conteudo, style="Root.TFrame")
         controles_tempo.pack(fill="x", pady=(0, 12))
@@ -528,7 +528,7 @@ class AbaMorfismo(ttk.Frame):
         self.escala_tempo.bind("<ButtonPress-1>", self._ao_iniciar_arraste_tempo)
         self.escala_tempo.bind("<ButtonRelease-1>", self._ao_soltar_tempo)
         ttk.Label(controles_tempo, textvariable=self.rotulo_tempo, style="Texto.TLabel").pack(side="left")
-        ttk.Button(controles_tempo, textvariable=self.rotulo_animacao, command=self.alternar_animacao).pack(side="left", padx=(12, 0))
+        tema.make_btn(controles_tempo, textvariable=self.rotulo_animacao, command=self.alternar_animacao, btn_type="action", padx=10, pady=4).pack(side="left", padx=(10, 0))
         ttk.Label(controles_tempo, text="Quadros:", style="Texto.TLabel").pack(side="left", padx=(18, 6))
         ttk.Entry(controles_tempo, textvariable=self.total_quadros_animacao, width=5).pack(side="left")
         ttk.Label(controles_tempo, text="Atraso (ms):", style="Texto.TLabel").pack(side="left", padx=(12, 6))
@@ -589,7 +589,7 @@ class AbaMorfismo(ttk.Frame):
             "Frame morfado",
             largura_max=self.TAMANHO_CANVAS,
             altura_max=self.TAMANHO_CANVAS,
-            inspector_posicao="bottom",
+            inspector_posicao="none",
         )
         self.painel_resultado.grid(row=0, column=2, padx=(8, 0), sticky="nsew")
 

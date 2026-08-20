@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import ttk
+
 COR_FUNDO = "#090d16"          # Obsidian escuro profundo
 COR_SIDEBAR = "#0f172a"        # Sidebar escura elegante
 COR_PAINEL = "#131d31"         # Slate/Navy escuro para cartões
@@ -15,8 +18,109 @@ COR_SUCESSO = "#10b981"        # Emerald
 COR_AVISO = "#f59e0b"          # Amber
 COR_ERRO = "#f43f5e"           # Rose
 
+# Botões e Ações
+PRIMARY = "#0284c7"
+PRIMARY_HOVER = "#0369a1"
+SUCCESS = "#10b981"
+SUCCESS_HOVER = "#059669"
+DANGER = "#ef4444"
+DANGER_HOVER = "#dc2626"
+WARNING = "#f59e0b"
+WARNING_HOVER = "#d97706"
+SECONDARY = "#334155"
+SECONDARY_HOVER = "#475569"
+ACCENT = "#06b6d4"
+ACCENT_HOVER = "#0891b2"
+
 FONTE_TITULO = ("Segoe UI", 15, "bold")
 FONTE_SUBTITULO = ("Segoe UI", 10, "bold")
 FONTE_CORPO = ("Segoe UI", 9)
 FONTE_PEQUENA = ("Segoe UI", 8)
 FONTE_CODE = ("Consolas", 9)
+
+
+def make_btn(parent, text="", command=None, btn_type="primary", font=None, padx=12, pady=5, textvariable=None, width=None, **kwargs):
+    """Cria um botão estilizado de acordo com o design escuro moderno com feedback de hover."""
+    styles = {
+        "primary": (PRIMARY, PRIMARY_HOVER, "#ffffff"),
+        "success": (SUCCESS, SUCCESS_HOVER, "#ffffff"),
+        "action": (SUCCESS, SUCCESS_HOVER, "#ffffff"),
+        "danger": (DANGER, DANGER_HOVER, "#ffffff"),
+        "warning": (WARNING, WARNING_HOVER, "#ffffff"),
+        "secondary": (SECONDARY, SECONDARY_HOVER, "#f8fafc"),
+        "accent": (ACCENT, ACCENT_HOVER, "#ffffff"),
+    }
+    bg_col, hov_col, fg_col = styles.get(btn_type, styles["primary"])
+    btn_font = font if font is not None else ("Segoe UI", 9, "bold")
+
+    btn_args = {
+        "bg": bg_col,
+        "fg": fg_col,
+        "activebackground": hov_col,
+        "activeforeground": fg_col,
+        "font": btn_font,
+        "relief": "flat",
+        "cursor": "hand2",
+        "padx": padx,
+        "pady": pady,
+        "command": command,
+        **kwargs
+    }
+    if textvariable is not None:
+        btn_args["textvariable"] = textvariable
+    elif text:
+        btn_args["text"] = text
+
+    if width is not None:
+        btn_args["width"] = width
+
+    btn = tk.Button(parent, **btn_args)
+
+    def _on_enter(e):
+        try:
+            if btn["state"] != tk.DISABLED:
+                btn["bg"] = hov_col
+        except Exception:
+            pass
+
+    def _on_leave(e):
+        try:
+            if btn["state"] != tk.DISABLED:
+                btn["bg"] = bg_col
+        except Exception:
+            pass
+
+    btn.bind("<Enter>", _on_enter, add="+")
+    btn.bind("<Leave>", _on_leave, add="+")
+    return btn
+
+
+def configure_ttk_styles(root=None):
+    """Configura o tema TTK escuro consistente com o projeto."""
+    style = ttk.Style(root)
+    try:
+        style.theme_use("clam")
+    except Exception:
+        pass
+
+    style.configure(".", background=COR_PAINEL, foreground=COR_TEXTO, font=FONTE_CORPO)
+    style.configure("TFrame", background=COR_PAINEL)
+    style.configure("Root.TFrame", background=COR_FUNDO)
+    style.configure("TLabelframe", background=COR_PAINEL, foreground=COR_TEXTO, bordercolor=COR_BORDA)
+    style.configure("TLabelframe.Label", background=COR_PAINEL, foreground=COR_INFO, font=FONTE_SUBTITULO)
+    style.configure("Card.TLabelframe", background=COR_PAINEL, foreground=COR_TEXTO, bordercolor=COR_BORDA)
+    style.configure("Card.TLabelframe.Label", background=COR_PAINEL, foreground=COR_INFO, font=FONTE_SUBTITULO)
+    style.configure("TLabel", background=COR_PAINEL, foreground=COR_TEXTO, font=FONTE_CORPO)
+    style.configure("Texto.TLabel", background=COR_FUNDO, foreground=COR_TEXTO, font=FONTE_CORPO)
+    style.configure("Status.TLabel", background=COR_FUNDO, foreground=COR_TEXTO_MUTED, font=FONTE_PEQUENA)
+    style.configure("TEntry", fieldbackground=COR_PAINEL_ALT, foreground=COR_TEXTO, insertcolor="#ffffff")
+    style.configure("TSpinbox", fieldbackground=COR_PAINEL_ALT, foreground=COR_TEXTO, insertcolor="#ffffff")
+    style.configure("TCombobox", fieldbackground=COR_PAINEL_ALT, foreground=COR_TEXTO, selectbackground=COR_DESTAQUE)
+
+    style.configure("TNotebook", background=COR_FUNDO, borderwidth=0)
+    style.configure("TNotebook.Tab", background=COR_PAINEL_ALT, foreground=COR_TEXTO_MUTED, padding=[12, 5], font=FONTE_SUBTITULO)
+    style.map("TNotebook.Tab",
+        background=[("selected", COR_PAINEL)],
+        foreground=[("selected", COR_DESTAQUE)]
+    )
+

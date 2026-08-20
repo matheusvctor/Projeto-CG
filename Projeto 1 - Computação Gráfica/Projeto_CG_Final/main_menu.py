@@ -32,6 +32,13 @@ def _executar_modulo(nome_modulo: str):
         root = tk.Tk()
         AppSutherlandHodgman(root)
         root.mainloop()
+    elif nome_modulo == "q2_weiler":
+        caminho_q2 = os.path.join(diretorio_base, "mod_recortes", "Questao2")
+        sys.path.insert(0, caminho_q2)
+        from mod_recortes.Questao2.apps.weiler_atherton_ui import AppWeilerAtherton
+        root = tk.Tk()
+        AppWeilerAtherton(root)
+        root.mainloop()
     elif nome_modulo == "q3_3d":
         caminho_q3 = os.path.join(diretorio_base, "mod_3d", "Questao3")
         sys.path.insert(0, caminho_q3)
@@ -88,12 +95,22 @@ class MainMenu:
             {
                 "id": "q2_sutherland",
                 "titulo": "Recorte Sutherland-Hodgman",
-                "subtitulo": "Questão 2 (Polígonos)",
+                "subtitulo": "Questão 2 (Polígonos Convexos)",
                 "icone": "⬡",
-                "descricao": "Recorte de polígonos côncavos e convexos contra as 4 bordas da janela com rastreamento visual das regras e cálculo analítico de interseções.",
+                "descricao": "Recorte de polígonos contra as 4 bordas da janela com rastreamento visual das regras e cálculo analítico de interseções.",
                 "tags": ["Polígonos", "4 Bordas", "Passo a Passo"],
                 "pasta": "mod_recortes/Questao2",
                 "script": "apps/sutherland_hodgman_ui.py"
+            },
+            {
+                "id": "q2_weiler",
+                "titulo": "Recorte Weiler-Atherton",
+                "subtitulo": "Questão 2 (Polígonos Côncavos)",
+                "icone": "✂️",
+                "descricao": "Recorte avançado de polígonos côncavos arbitrários e geração de múltiplos sub-polígonos desconectados por travessia de listas encadeadas circulares.",
+                "tags": ["Polígonos Côncavos", "Múltiplos Sub-polígonos", "Entrada/Saída"],
+                "pasta": "mod_recortes/Questao2",
+                "script": "apps/weiler_atherton_ui.py"
             },
             {
                 "id": "q3_3d",

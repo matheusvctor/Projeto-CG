@@ -1,7 +1,20 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import tkinter as tk
 from tkinter import ttk
+
+
+import os
+import sys
+
+_dir_modulo = os.path.abspath(os.path.dirname(__file__))
+_dir_raiz = os.path.abspath(os.path.join(_dir_modulo, ".."))
+if _dir_modulo not in sys.path:
+    sys.path.insert(0, _dir_modulo)
+if _dir_raiz not in sys.path:
+    sys.path.insert(0, _dir_raiz)
+
+import theme
 
 
 def open_cohen_sutherland(root):
@@ -9,7 +22,7 @@ def open_cohen_sutherland(root):
     from apps.cohen_sutherland_ui import AppCohenSutherland
 
     win = tk.Toplevel(root)
-    win.title("Questao 2 - Cohen-Sutherland")
+    win.title("Questão 2 - Cohen-Sutherland")
     AppCohenSutherland(win, on_back=win.destroy)
 
 
@@ -18,13 +31,24 @@ def open_sutherland_hodgman(root):
     from apps.sutherland_hodgman_ui import AppSutherlandHodgman
 
     win = tk.Toplevel(root)
-    win.title("Questao 2 - Sutherland-Hodgman")
+    win.title("Questão 2 - Sutherland-Hodgman")
     _center(win, 1320, 760)
     win.minsize(1100, 680)
     AppSutherlandHodgman(win, on_back=win.destroy)
 
 
-def _center(win, w=900, h=280):
+def open_weiler_atherton(root):
+    """Abre a interface de recorte de polígonos côncavos por Weiler-Atherton."""
+    from apps.weiler_atherton_ui import AppWeilerAtherton
+
+    win = tk.Toplevel(root)
+    win.title("Questão 2 - Weiler-Atherton")
+    _center(win, 1320, 760)
+    win.minsize(1100, 680)
+    AppWeilerAtherton(win, on_back=win.destroy)
+
+
+def _center(win, w=900, h=360):
     """Centraliza a janela de seleção da Questão 2 na tela."""
     win.update_idletasks()
     sw = win.winfo_screenwidth()
@@ -35,31 +59,60 @@ def _center(win, w=900, h=280):
 
 
 def main():
-    """Mostra o menu da Questão 2 para escolher entre os dois algoritmos de recorte."""
+    """Mostra o menu da Questão 2 para escolher entre os três algoritmos de recorte."""
     root = tk.Tk()
-    root.title("Projeto 1 - Questao 2")
-    _center(root, 900, 280)
-    root.minsize(700, 220)
+    root.title("Projeto 1 - Questão 2 (Algoritmos de Recorte)")
+    root.configure(bg=theme.BG_APP)
+    theme.configure_ttk_styles(root)
+    _center(root, 750, 380)
+    root.minsize(650, 320)
 
-    frm = ttk.Frame(root, padding=20)
-    frm.pack(fill=tk.BOTH, expand=True)
+    frm = tk.Frame(root, bg=theme.BG_PANEL, padx=30, pady=25)
+    frm.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
-    ttk.Label(
+    tk.Label(
         frm,
-        text="Questao 2 - Recorte de Janela",
-        font=("Segoe UI", 14, "bold"),
-    ).pack(pady=(0, 12))
-    ttk.Button(
+        text="Questão 2 — Algoritmos de Recorte de Janela",
+        font=theme.FONT_TITLE,
+        bg=theme.BG_PANEL,
+        fg=theme.CYAN_GLOW
+    ).pack(pady=(0, 16))
+
+    theme.make_btn(
         frm,
-        text="Cohen-Sutherland",
-        command=lambda: open_cohen_sutherland(root),
-    ).pack(fill=tk.X, ipady=12, pady=6)
-    ttk.Button(
+        "📏 1. Cohen-Sutherland (Recorte de Retas & Animação)",
+        lambda: open_cohen_sutherland(root),
+        "primary",
+        padx=16,
+        pady=8
+    ).pack(fill=tk.X, pady=5)
+
+    theme.make_btn(
         frm,
-        text="Sutherland-Hodgman",
-        command=lambda: open_sutherland_hodgman(root),
-    ).pack(fill=tk.X, ipady=12, pady=6)
-    ttk.Button(frm, text="Sair", command=root.destroy).pack(fill=tk.X, ipady=10, pady=(18, 0))
+        "📐 2. Sutherland-Hodgman (Recorte de Polígonos Convexos)",
+        lambda: open_sutherland_hodgman(root),
+        "secondary",
+        padx=16,
+        pady=8
+    ).pack(fill=tk.X, pady=5)
+
+    theme.make_btn(
+        frm,
+        "✂ 3. Weiler-Atherton (Recorte de Polígonos Côncavos & Sub-regiões)",
+        lambda: open_weiler_atherton(root),
+        "action",
+        padx=16,
+        pady=8
+    ).pack(fill=tk.X, pady=5)
+
+    theme.make_btn(
+        frm,
+        "✕ Fechar",
+        root.destroy,
+        "danger",
+        padx=16,
+        pady=6
+    ).pack(fill=tk.X, pady=(15, 0))
 
     root.mainloop()
 
