@@ -143,6 +143,7 @@ class AppTransf2D:
         add_action_btn("👁  Mostrar Viewport", self._mostrar_viewport, "secondary")
         add_action_btn("↶  Desfazer Passo", self._desfazer, "warning")
         add_action_btn("↺  Limpar Tudo", self.limpar, "danger")
+        theme.make_btn_insp(left, lambda: ("mod_primitivas/Questao1/apps/transf2d_ui.py", 435)).pack(fill=tk.X, pady=(10, 3))
 
 
         bottom = ttk.Frame(root, padding=(8,6)); bottom.pack(side=tk.BOTTOM, fill=tk.X)

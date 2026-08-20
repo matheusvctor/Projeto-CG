@@ -123,6 +123,15 @@ class AbaMorfologia(ttk.Frame):
 
         tema.make_btn(barra, "▶ Aplicar Operador", self.aplicar_operacao, "success", padx=12, pady=4).pack(side="left", padx=(10, 0))
         tema.make_btn(barra, "💾 Salvar", self.salvar_resultado, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        
+        def _obter_info_morfologia():
+            linhas_morf = {
+                "Erosão": 12, "Dilatação": 16, "Abertura": 20, "Fechamento": 24,
+                "Gradiente morfológico": 28, "Top-hat": 32, "Bottom-hat": 36, "Hit-or-miss": 40
+            }
+            return ("src/laboratorio_imagens/core/operacoes_morfologicas.py", linhas_morf.get(self.operacao_atual.get(), 12))
+
+        tema.make_btn_insp(barra, _obter_info_morfologia).pack(side="left", padx=(6, 0))
         ttk.Checkbutton(
             barra,
             text="Sincronizar tabelas",
@@ -334,6 +343,10 @@ class AbaGeometria(ttk.Frame):
 
         tema.make_btn(barra, "▶ Transformar", self.aplicar_transformacao, "success", padx=12, pady=4).pack(side="left", padx=(10, 0))
         tema.make_btn(barra, "💾 Salvar", self.salvar_resultado, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        tema.make_btn_insp(
+            barra,
+            lambda: ("src/laboratorio_imagens/core/transformacoes_geometricas.py", 10)
+        ).pack(side="left", padx=(6, 0))
         ttk.Checkbutton(
             barra,
             text="Sincronizar tabelas",
@@ -517,6 +530,10 @@ class AbaMorfismo(ttk.Frame):
         tema.make_btn(barra, "💾 Salvar Frame", self.salvar_frame, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
         tema.make_btn(barra, textvariable=self.rotulo_salvar_animacao, command=self.salvar_animacao, btn_type="secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
         tema.make_btn(barra, "💾 Salvar Seq.", self.salvar_sequencia, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        tema.make_btn_insp(
+            barra,
+            lambda: ("src/laboratorio_imagens/core/morfismo.py", 80)
+        ).pack(side="left", padx=(6, 0))
 
         controles_tempo = ttk.Frame(self.conteudo, style="Root.TFrame")
         controles_tempo.pack(fill="x", pady=(0, 12))

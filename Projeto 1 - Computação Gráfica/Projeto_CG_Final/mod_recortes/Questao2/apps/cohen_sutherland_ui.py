@@ -92,6 +92,7 @@ class AppCohenSutherland:
         theme.make_btn(fopt, "▶ Animar", self.iniciar_animacao, "primary", padx=8, pady=3).pack(side=tk.LEFT, padx=2)
         theme.make_btn(fopt, "⏹ Parar", self.parar_animacao, "warning", padx=8, pady=3).pack(side=tk.LEFT, padx=2)
         theme.make_btn(fopt, "↺ Limpar", self.limpar, "danger", padx=8, pady=3).pack(side=tk.LEFT, padx=2)
+        theme.make_btn_insp(fopt, lambda: ("mod_recortes/Questao2/apps/cohen_sutherland_ui.py", 220)).pack(side=tk.LEFT, padx=2)
 
         corpo = ttk.Frame(root)
         corpo.pack(fill=tk.BOTH, expand=True, padx=6, pady=(0, 6))

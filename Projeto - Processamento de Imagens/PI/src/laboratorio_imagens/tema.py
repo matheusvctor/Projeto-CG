@@ -39,6 +39,63 @@ FONTE_PEQUENA = ("Segoe UI", 8)
 FONTE_CODE = ("Consolas", 9)
 
 
+import os
+from pathlib import Path
+import subprocess
+import webbrowser
+
+
+def abrir_na_ide(caminho_relativo: str | Path, linha: int = 1) -> None:
+    """Abre o arquivo fonte na IDE (VS Code / Cursor / Antigravity) na linha exata."""
+    # Resolve caminho absoluto a partir do pacote ou da raiz do repositorio
+    raiz_projeto = Path(__file__).resolve().parent.parent.parent
+    caminho_abs = (raiz_projeto / caminho_relativo).resolve()
+    if not caminho_abs.exists():
+        caminho_abs = Path(caminho_relativo).resolve()
+        
+    caminho_str = str(caminho_abs).replace("\\", "/")
+
+    # 1. Tenta abrir via CLI do VS Code com foco na linha exata (-g goto)
+    try:
+        subprocess.Popen(f'code -g "{caminho_str}:{linha}"', shell=True)
+        return
+    except Exception:
+        pass
+
+    # 2. Tenta via Protocolo URI vscode://
+    try:
+        if webbrowser.open(f"vscode://file/{caminho_str}:{linha}"):
+            return
+    except Exception:
+        pass
+
+    # 3. Fallback nativo do Windows
+    try:
+        os.startfile(caminho_str)
+    except Exception:
+        pass
+
+
+def make_btn_insp(parent, callback_info):
+    """Cria um botão compacto e elegante 'Inspecionar Código'."""
+    def _acao():
+        info = callback_info() if callable(callback_info) else callback_info
+        if isinstance(info, tuple) and len(info) >= 2:
+            arquivo, linha = info[0], info[1]
+            abrir_na_ide(arquivo, linha)
+        elif isinstance(info, str):
+            abrir_na_ide(info, 1)
+
+    return make_btn(
+        parent,
+        text="🔍 Inspecionar Código",
+        command=_acao,
+        btn_type="secondary",
+        padx=8,
+        pady=4,
+    )
+
+
 def make_btn(parent, text="", command=None, btn_type="primary", font=None, padx=12, pady=5, textvariable=None, width=None, **kwargs):
     """Cria um botão estilizado de acordo com o design escuro moderno com feedback de hover."""
     styles = {

@@ -116,6 +116,7 @@ class AppSutherlandHodgman:
         theme.make_btn(f_botoes, "⤢ Enquadrar", self.enquadrar, "primary", padx=8, pady=2).pack(side=tk.LEFT, padx=2)
         theme.make_btn(f_botoes, "📁 Exemplo", self.carregar_exemplo, "secondary", padx=8, pady=2).pack(side=tk.LEFT, padx=2)
         theme.make_btn(f_botoes, "↺ Limpar", self.limpar, "danger", padx=8, pady=2).pack(side=tk.LEFT, padx=2)
+        theme.make_btn_insp(f_botoes, lambda: ("mod_recortes/Questao2/apps/sutherland_hodgman_ui.py", 80)).pack(side=tk.LEFT, padx=2)
 
         ttk.Label(root, textvariable=self.status_var, padding=(10, 2, 10, 8)).pack(anchor="w")
 

@@ -292,9 +292,12 @@ class MainMenu:
                 pady=4
             ).pack(side=tk.LEFT, padx=(0, 8))
 
-        # Botão de Ação / Lançamento
+        # Botões de Ação / Lançamento e Inspeção
+        action_frame = tk.Frame(body, bg=theme.BG_PANEL)
+        action_frame.pack(anchor="w", pady=(10, 0))
+
         btn_action = tk.Button(
-            body,
+            action_frame,
             text=f"Abrir Módulo: {mod['titulo']} ➔",
             font=theme.FONT_TITLE,
             bg=theme.SUCCESS,
@@ -303,11 +306,16 @@ class MainMenu:
             activeforeground="#ffffff",
             relief="flat",
             cursor="hand2",
-            padx=25,
-            pady=14,
+            padx=20,
+            pady=12,
             command=lambda: self.abrir_modulo(mod["id"], mod["pasta"], mod["script"])
         )
-        btn_action.pack(anchor="w", pady=(10, 0))
+        btn_action.pack(side=tk.LEFT)
+
+        theme.make_btn_insp(
+            action_frame,
+            lambda m=mod: (os.path.join(m["pasta"], m["script"]), 1)
+        ).pack(side=tk.LEFT, padx=(12, 0))
 
     def abrir_modulo(self, chave_modulo, pasta_base, script):
         """Abre o módulo de forma autônoma e compatível com PyInstaller."""

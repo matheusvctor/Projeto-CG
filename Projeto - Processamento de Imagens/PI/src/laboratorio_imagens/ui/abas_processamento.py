@@ -138,6 +138,10 @@ class AbaFiltros(ttk.Frame):
 
         tema.make_btn(linha_controles, "▶ Aplicar Filtro", self.aplicar_filtro, "success", padx=12, pady=4).pack(side="left", padx=(10, 0))
         tema.make_btn(linha_controles, "💾 Salvar", self.salvar_resultado, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        tema.make_btn_insp(
+            linha_controles,
+            lambda: ("src/laboratorio_imagens/core/filtros_espaciais.py", filtros_espaciais.obter_linha_filtro(self.filtro_atual.get()))
+        ).pack(side="left", padx=(6, 0))
         ttk.Checkbutton(
             linha_controles,
             text="Sincronizar tabelas",
@@ -382,6 +386,15 @@ class AbaOperacoes(ttk.Frame):
 
         tema.make_btn(barra, "⚡ Executar Operação", self.aplicar_operacao, "success", padx=12, pady=4).pack(side="left", padx=(10, 0))
         tema.make_btn(barra, "💾 Salvar", self.salvar_resultado, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        
+        def _obter_info_operacao():
+            linhas_op = {
+                "Soma": 26, "Subtracao": 31, "Multiplicacao": 41, "Divisao": 51,
+                "AND": 63, "OR": 68, "XOR": 73, "NOT": 78
+            }
+            return ("src/laboratorio_imagens/core/operacoes_pixel.py", linhas_op.get(self.operacao_atual.get(), 26))
+
+        tema.make_btn_insp(barra, _obter_info_operacao).pack(side="left", padx=(6, 0))
         ttk.Checkbutton(
             barra,
             text="Sincronizar tabelas",
@@ -530,6 +543,13 @@ class AbaIntensidadeHistograma(ttk.Frame):
         tema.make_btn(barra, "▶ Aplicar Transformação", self.aplicar_transformacao, "success", padx=12, pady=4).pack(side="left", padx=(10, 0))
         tema.make_btn(barra, "💾 Salvar", self.salvar_resultado, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
         tema.make_btn(barra, "🔍 Zoom Histograma", self.abrir_zoom_histogramas, "accent", padx=8, pady=4).pack(side="left", padx=(6, 0))
+        
+        def _obter_info_intensidade():
+            if self.transformacao.get() == NOME_EQUALIZE_HISTOGRAMA:
+                return ("src/laboratorio_imagens/core/histograma.py", 40)
+            return ("src/laboratorio_imagens/core/transformacoes_intensidade.py", 15)
+
+        tema.make_btn_insp(barra, _obter_info_intensidade).pack(side="left", padx=(6, 0))
         ttk.Checkbutton(
             barra,
             text="Sincronizar tabelas",

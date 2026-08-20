@@ -275,6 +275,7 @@ def setup_tkinter():
     nav.pack(fill="x", padx=0, pady=(0, 4))
     theme.make_btn(nav, "◀ Voltar", root.destroy, "primary", padx=10, pady=4).pack(side="left", padx=10, pady=4)
     tk.Label(nav, text="Modelagem & Transformações 3D (Regra Z+)", bg=theme.BG_HEADER, fg=theme.CYAN_GLOW, font=theme.FONT_TITLE).pack(side="left", padx=10)
+    theme.make_btn_insp(nav, lambda: ("mod_3d/Questao3/Questao3..py", 35)).pack(side="right", padx=10, pady=4)
 
     controls = tk.Frame(main_frm, bg=theme.BG_PANEL, width=320, pady=8)
     controls.pack(side="left", fill="y")

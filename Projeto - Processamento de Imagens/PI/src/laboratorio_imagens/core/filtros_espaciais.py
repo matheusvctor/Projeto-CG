@@ -461,3 +461,28 @@ def aplicar_filtro_por_nome(
             raise ValueError("Informe uma mascara 3x3 para o filtro livre.")
         return aplicar_filtro_livre(matriz, mascara_personalizada)
     raise ValueError(f"Filtro '{nome_filtro}' nao reconhecido.")
+
+
+def obter_linha_filtro(nome_filtro: str) -> int:
+    """Retorna o número da linha correspondente à implementação da função do filtro."""
+    linhas = {
+        "Filtro da media": 251,
+        "Filtro da mediana": 255,
+        "Passa-altas basico": 259,
+        "Roberts": 264,
+        "Roberts X": 268,
+        "Roberts Y": 272,
+        "Roberts cruzado": 276,
+        "Roberts cruzado X": 280,
+        "Roberts cruzado Y": 284,
+        "Prewitt": 288,
+        "Prewitt X": 292,
+        "Prewitt Y": 296,
+        "Sobel": 300,
+        "Sobel X": 304,
+        "Sobel Y": 308,
+        "High-boost": 320,
+        "Filtro livre": 416,
+    }
+    return linhas.get(nome_filtro, 251)
+
