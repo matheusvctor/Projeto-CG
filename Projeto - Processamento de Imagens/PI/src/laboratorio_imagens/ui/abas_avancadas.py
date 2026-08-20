@@ -265,6 +265,8 @@ class AbaMorfologia(ttk.Frame):
         else:
             self.painel_original.mostrar_imagem(imagem_entrada, texto_info=_descricao_imagem(imagem_entrada))
         self.painel_resultado.mostrar_imagem(self.imagem_resultado, texto_info=_descricao_imagem(self.imagem_resultado))
+        if self.sincronizar_tabelas.get() and self._sincronizador_pixels is not None:
+            self._sincronizador_pixels._sincronizar_estado_existente()
         self.status.set(f"Operacao morfologica '{operacao}' aplicada com sucesso.")
 
     def salvar_resultado(self) -> None:
@@ -425,6 +427,8 @@ class AbaGeometria(ttk.Frame):
 
         self.imagem_resultado = criar_imagem(resultado, nome=f"transformacao_{nome.lower()}")
         self.painel_resultado.mostrar_imagem(self.imagem_resultado, texto_info=_descricao_imagem(self.imagem_resultado))
+        if self.sincronizar_tabelas.get() and self._sincronizador_pixels is not None:
+            self._sincronizador_pixels._sincronizar_estado_existente()
         self.status.set(f"Transformacao '{nome}' aplicada com sucesso.")
 
     def salvar_resultado(self) -> None:

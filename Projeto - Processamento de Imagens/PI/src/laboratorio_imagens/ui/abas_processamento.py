@@ -295,6 +295,8 @@ class AbaFiltros(ttk.Frame):
 
         self.imagem_resultado = criar_imagem(resultado, nome=f"resultado_{filtro.lower().replace(' ', '_')}")
         self.painel_resultado.mostrar_imagem(self.imagem_resultado, texto_info=_descricao_imagem(self.imagem_resultado))
+        if self.sincronizar_tabelas.get() and self._sincronizador_pixels is not None:
+            self._sincronizador_pixels._sincronizar_estado_existente()
         self.status.set(f"Filtro '{filtro}' aplicado com sucesso.")
 
     def salvar_resultado(self) -> None:
@@ -414,6 +416,8 @@ class AbaOperacoes(ttk.Frame):
             nome=f"resultado_{operacao.lower()}",
         )
         self.painel_resultado.mostrar_imagem(self.imagem_resultado, texto_info=_descricao_imagem(self.imagem_resultado))
+        if self.sincronizar_tabelas.get() and self._sincronizador_pixels is not None:
+            self._sincronizador_pixels._sincronizar_estado_existente()
 
         if operacao == "NOT":
             self.status.set("Operacao 'NOT' executada sobre a imagem A.")
@@ -421,7 +425,7 @@ class AbaOperacoes(ttk.Frame):
 
         assert self.imagem_b is not None
         tamanhos_iguais = self.imagem_a.matriz.shape == self.imagem_b.matriz.shape
-        ajuste = "" if tamanhos_iguais else " As imagens foram ajustadas para o menor tamanho em comum."
+        ajuste = "" if tamanhos_iguais else " A imagem B foi redimensionada proporcionalmente para as dimensoes da imagem A."
         self.status.set(f"Operacao '{operacao}' executada.{ajuste}")
 
     def salvar_resultado(self) -> None:
@@ -743,6 +747,8 @@ class AbaIntensidadeHistograma(ttk.Frame):
         }
         self.imagem_resultado = criar_imagem(resultado, nome=nomes_saida[nome])
         self.painel_resultado.mostrar_imagem(self.imagem_resultado, texto_info=_descricao_imagem(self.imagem_resultado))
+        if self.sincronizar_tabelas.get() and self._sincronizador_pixels is not None:
+            self._sincronizador_pixels._sincronizar_estado_existente()
         self._atualizar_histogramas(
             calcular_histograma(self.imagem_origem.matriz),
             cor_original=tema.COR_DESTAQUE,

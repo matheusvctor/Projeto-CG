@@ -845,31 +845,37 @@ class PainelImagem(ttk.LabelFrame):
             return
 
         altura, largura = self._matriz.shape
-        # overlay: desenha na imagem a mesma regiao exibida na tabela fixada
+        # overlay: desenha na imagem a mesma regiao exibida na tabela fixada com tamanho minimo visivel
         esquerda = self._offset_x + (x_inicial / max(largura, 1)) * self._largura_exibida
         topo = self._offset_y + (y_inicial / max(altura, 1)) * self._altura_exibida
         direita = self._offset_x + (x_final / max(largura, 1)) * self._largura_exibida
         base = self._offset_y + (y_final / max(altura, 1)) * self._altura_exibida
+
+        largura_janela_cx = max(direita - esquerda, 12)
+        altura_janela_cx = max(base - topo, 12)
+        cx_janela = (esquerda + direita) / 2.0
+        cy_janela = (topo + base) / 2.0
         self.canvas_imagem.create_rectangle(
-            esquerda,
-            topo,
-            direita,
-            base,
+            cx_janela - largura_janela_cx / 2.0,
+            cy_janela - altura_janela_cx / 2.0,
+            cx_janela + largura_janela_cx / 2.0,
+            cy_janela + altura_janela_cx / 2.0,
             outline=tema.COR_DESTAQUE,
             width=2,
         )
 
-        pixel_esquerda = self._offset_x + (x_centro / max(largura, 1)) * self._largura_exibida
-        pixel_topo = self._offset_y + (y_centro / max(altura, 1)) * self._altura_exibida
-        pixel_direita = self._offset_x + ((x_centro + 1) / max(largura, 1)) * self._largura_exibida
-        pixel_base = self._offset_y + ((y_centro + 1) / max(altura, 1)) * self._altura_exibida
+        # Marcador central de pixel bem visivel em qualquer resolucao
+        px_cx = self._offset_x + ((x_centro + 0.5) / max(largura, 1)) * self._largura_exibida
+        px_cy = self._offset_y + ((y_centro + 0.5) / max(altura, 1)) * self._altura_exibida
+        raio_px = 3
         self.canvas_imagem.create_rectangle(
-            pixel_esquerda,
-            pixel_topo,
-            pixel_direita,
-            pixel_base,
-            outline=tema.COR_SUCESSO,
-            width=2,
+            px_cx - raio_px,
+            px_cy - raio_px,
+            px_cx + raio_px,
+            px_cy + raio_px,
+            outline="#ffffff",
+            fill=tema.COR_DESTAQUE,
+            width=1,
         )
 
     def mostrar_imagem(self, imagem: ImagemNetpbm | np.ndarray, *, texto_info: str | None = None) -> None:
@@ -941,20 +947,26 @@ class SincronizadorPaineisImagem:
             self._sincronizar_estado_existente()
 
     def _sincronizar_estado_existente(self) -> None:
+        painel_alvo = None
         for painel in self.paineis:
-            if not painel.tem_imagem():
-                continue
-            estado = painel.obter_estado_inspecao()
-            centro = estado["centro"]
-            if centro is None:
-                continue
-            self._ao_receber_inspecao(
-                painel,
-                centro,
-                bool(estado["fixada"]),
-                str(estado["tamanho_janela"]),
-            )
+            if painel.tem_imagem() and painel.obter_estado_inspecao()["fixada"]:
+                painel_alvo = painel
+                break
+        if painel_alvo is None:
+            for painel in self.paineis:
+                if painel.tem_imagem() and painel.obter_estado_inspecao()["centro"] is not None:
+                    painel_alvo = painel
+                    break
+        if painel_alvo is None:
             return
+
+        estado = painel_alvo.obter_estado_inspecao()
+        self._ao_receber_inspecao(
+            painel_alvo,
+            estado["centro"],
+            bool(estado["fixada"]),
+            str(estado["tamanho_janela"]),
+        )
 
     def _ao_receber_inspecao(
         self,
@@ -969,10 +981,26 @@ class SincronizadorPaineisImagem:
         for painel in self.paineis:
             if painel is origem:
                 continue
-            if centro is None:
+            if centro is None or not painel.tem_imagem() or not origem.tem_imagem():
                 painel.limpar_inspecao_externa(tamanho_janela=tamanho_janela)
             else:
-                painel.aplicar_inspecao_externa(centro, fixada=fixada, tamanho_janela=tamanho_janela)
+                matriz_orig = origem._matriz
+                matriz_dest = painel._matriz
+                if matriz_orig is not None and matriz_dest is not None:
+                    h_orig, w_orig = matriz_orig.shape
+                    h_dest, w_dest = matriz_dest.shape
+                    if (w_orig, h_orig) == (w_dest, h_dest):
+                        centro_dest = centro
+                    else:
+                        u = centro[0] / max(w_orig - 1, 1)
+                        v = centro[1] / max(h_orig - 1, 1)
+                        x_dest = int(round(u * max(w_dest - 1, 1)))
+                        y_dest = int(round(v * max(h_dest - 1, 1)))
+                        centro_dest = (min(max(x_dest, 0), w_dest - 1), min(max(y_dest, 0), h_dest - 1))
+                else:
+                    centro_dest = centro
+
+                painel.aplicar_inspecao_externa(centro_dest, fixada=fixada, tamanho_janela=tamanho_janela)
 
 
 class GraficoHistograma(ttk.LabelFrame):

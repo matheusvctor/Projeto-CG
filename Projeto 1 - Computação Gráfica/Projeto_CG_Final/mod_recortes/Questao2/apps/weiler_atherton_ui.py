@@ -350,7 +350,10 @@ COMO FUNCIONA:
         self._atualizar_passos(result)
         self.quadro.redraw()
 
-    def _redesenhar(self, cv: tk.Canvas):
+    def _redesenhar(self, cv: tk.Canvas | None = None):
+        if cv is None:
+            cv = self.canvas
+
         if not self._last_result:
             pts = self.get_polygon_points()
             if pts:

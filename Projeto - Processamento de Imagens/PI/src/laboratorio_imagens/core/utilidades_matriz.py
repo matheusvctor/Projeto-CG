@@ -18,13 +18,26 @@ def normalizar_uint8(matriz: np.ndarray) -> np.ndarray:
     return np.clip(np.rint(normalizada), 0, 255).astype(np.uint8)
 
 
+from PIL import Image
+
+
+def redimensionar_matriz(matriz: np.ndarray, nova_altura: int, nova_largura: int) -> np.ndarray:
+    if matriz.shape == (nova_altura, nova_largura):
+        return matriz
+    pil_img = Image.fromarray(np.asarray(matriz, dtype=np.uint8))
+    redim = pil_img.resize((nova_largura, nova_altura), Image.Resampling.BILINEAR)
+    return np.asarray(redim, dtype=np.uint8)
+
+
 def ajustar_para_mesmo_tamanho(
     matriz_a: np.ndarray,
     matriz_b: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
-    altura = min(matriz_a.shape[0], matriz_b.shape[0])
-    largura = min(matriz_a.shape[1], matriz_b.shape[1])
-    return matriz_a[:altura, :largura], matriz_b[:altura, :largura]
+    if matriz_a.shape == matriz_b.shape:
+        return matriz_a, matriz_b
+    altura_ref, largura_ref = matriz_a.shape[0], matriz_a.shape[1]
+    matriz_b_ajustada = redimensionar_matriz(matriz_b, altura_ref, largura_ref)
+    return matriz_a, matriz_b_ajustada
 
 
 def padronizar_binaria(matriz: np.ndarray) -> np.ndarray:
