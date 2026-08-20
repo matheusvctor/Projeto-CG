@@ -42,34 +42,66 @@ FONTE_CODE = ("Consolas", 9)
 import os
 from pathlib import Path
 import subprocess
+import sys
 import webbrowser
 
 
-def abrir_na_ide(caminho_relativo: str | Path, linha: int = 1) -> None:
-    """Abre o arquivo fonte na IDE (VS Code / Cursor / Antigravity) na linha exata."""
-    # Resolve caminho absoluto a partir do pacote ou da raiz do repositorio
-    raiz_projeto = Path(__file__).resolve().parent.parent.parent
-    caminho_abs = (raiz_projeto / caminho_relativo).resolve()
-    if not caminho_abs.exists():
-        caminho_abs = Path(caminho_relativo).resolve()
-        
-    caminho_str = str(caminho_abs).replace("\\", "/")
+def encontrar_arquivo_real(alvo: str | Path) -> Path | None:
+    """Localiza o arquivo original do código-fonte dentro do workspace real."""
+    nome_arquivo = Path(alvo).name
+    locais_iniciais = [
+        Path.cwd(),
+        Path(sys.executable).parent,
+        Path(sys.executable).parent.parent,
+        Path(sys.executable).parent.parent.parent,
+        Path(sys.executable).parent.parent.parent.parent,
+    ]
+    if "__file__" in globals():
+        locais_iniciais.insert(0, Path(__file__).resolve().parent)
+        locais_iniciais.insert(0, Path(__file__).resolve().parent.parent)
+        locais_iniciais.insert(0, Path(__file__).resolve().parent.parent.parent)
 
-    # 1. Tenta abrir via CLI do VS Code com foco na linha exata (-g goto)
+    # 1. Tenta correspondencia direta com os locais
+    for base in locais_iniciais:
+        tentativa = (base / alvo).resolve()
+        if tentativa.is_file() and "_MEI" not in str(tentativa):
+            return tentativa
+
+    # 2. Busca recursiva pelo nome do arquivo na árvore do workspace
+    for base in locais_iniciais:
+        if (base / "Projeto - Processamento de Imagens").exists() or (base / "Projeto 1 - Computação Gráfica").exists() or "Computacao-grafica-main" in str(base):
+            for p in base.rglob(nome_arquivo):
+                if p.is_file() and "dist" not in str(p) and "build" not in str(p) and "_MEI" not in str(p):
+                    return p.resolve()
+
+    # 3. Fallback: caminho padrão
+    return (Path.cwd() / alvo).resolve()
+
+
+def abrir_na_ide(caminho_relativo: str | Path, linha: int = 1) -> None:
+    """Abre o arquivo fonte existente no workspace na IDE (VS Code / Antigravity / Cursor) na linha exata."""
+    caminho_real = encontrar_arquivo_real(caminho_relativo)
+    if caminho_real is None:
+        return
+
+    caminho_str = str(caminho_real).replace("/", "\\")
+
+    # 1. Executa CLI do VS Code / Antigravity / Cursor com goto na linha (-g)
     try:
         subprocess.Popen(f'code -g "{caminho_str}:{linha}"', shell=True)
         return
     except Exception:
         pass
 
-    # 2. Tenta via Protocolo URI vscode://
+    # 2. Protocolo nativo vscode://
     try:
-        if webbrowser.open(f"vscode://file/{caminho_str}:{linha}"):
+        caminho_uri = str(caminho_real).replace("\\", "/")
+        if webbrowser.open(f"vscode://file/{caminho_uri}:{linha}"):
             return
     except Exception:
         pass
 
-    # 3. Fallback nativo do Windows
+    # 3. Fallback do Windows para abrir o arquivo existente
     try:
         os.startfile(caminho_str)
     except Exception:
