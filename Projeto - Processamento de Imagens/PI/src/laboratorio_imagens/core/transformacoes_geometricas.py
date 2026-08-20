@@ -25,16 +25,15 @@ def aplicar_transformacao_afim(
     expandir: bool = True,
     valor_fundo: int = 0,
 ) -> np.ndarray:
-    """Aplica uma transformação geométrica afim 2D usando MAPEAMENTO INVERSO.
+    """Aplica uma transformação geométrica afim 2D utilizando MAPEAMENTO INVERSO.
 
-    Pergunta do professor: "Por que usamos Mapeamento Inverso (Inverse Mapping) em vez do Direto (Forward)?"
-    Resposta:
-    - Se usássemos Mapeamento Direto (varrer a imagem de entrada e calcular onde cada pixel cai na saída),
-      haveria 'buracos' e 'descontinuidades' (aliasing/gaps) na imagem de saída porque as coordenadas
-      transformadas caem em posições fracionárias não contíguas.
-    - Com o MAPEAMENTO INVERSO, nós varremos CADA pixel (x', y') da imagem de SAÍDA, multiplicamos pela
-      matriz INVERSA T^{-1} para encontrar as coordenadas originais (x, y), e interpolamos o valor.
-      Isso garante que NENHUM pixel da saída fique vazio!
+    Fundamentação Teórica e Algorítmica:
+        - O Mapeamento Direto (Forward Mapping) geraria 'buracos' (gaps) e descontinuidades na grade discreta de saída
+          devido a arredondamentos de coordenadas não contíguas.
+        - O Mapeamento Inverso (Inverse Mapping) itera sobre cada pixel (x', y') da imagem de DESTINO,
+          calcula sua coordenada original correspondente através da matriz inversa: (x, y) = T^{-1} * (x', y'),
+          e interpola o valor do pixel pelo vizinho mais próximo (Nearest Neighbor / rint).
+        - Isso assegura cobertura contínua e densa de todos os pixels da imagem de saída.
     """
     imagem = np.asarray(matriz, dtype=np.uint8)
     altura, largura = imagem.shape

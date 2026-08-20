@@ -24,6 +24,12 @@ def _finalizar_resultado(matriz: np.ndarray, pos_processamento: str) -> np.ndarr
 
 
 def soma(matriz_a: np.ndarray, matriz_b: np.ndarray, *, pos_processamento: str = "Truncamento") -> np.ndarray:
+    """Realiza a soma pontual entre duas imagens: C(x,y) = A(x,y) + B(x,y).
+    
+    Pós-processamentos:
+        - Truncamento: limita valores superiores a 255 (clamp).
+        - Normalização: mapeia [min, max] linearmente para [0, 255].
+    """
     primeira, segunda = _ajustar_duas_matrizes(matriz_a, matriz_b)
     return _finalizar_resultado(primeira + segunda, pos_processamento)
 
@@ -34,6 +40,7 @@ def subtracao(
     *,
     pos_processamento: str = "Truncamento",
 ) -> np.ndarray:
+    """Realiza a subtração pontual: C(x,y) = A(x,y) - B(x,y). Usado para detecção de mudanças e diferenças."""
     primeira, segunda = _ajustar_duas_matrizes(matriz_a, matriz_b)
     return _finalizar_resultado(primeira - segunda, pos_processamento)
 
@@ -44,6 +51,7 @@ def multiplicacao(
     *,
     pos_processamento: str = "Normalizacao",
 ) -> np.ndarray:
+    """Realiza a multiplicação pontual: C(x,y) = A(x,y) * B(x,y). Usado para mascaramento e sombreamento."""
     primeira, segunda = _ajustar_duas_matrizes(matriz_a, matriz_b)
     return _finalizar_resultado(primeira * segunda, pos_processamento)
 
@@ -54,6 +62,7 @@ def divisao(
     *,
     pos_processamento: str = "Normalizacao",
 ) -> np.ndarray:
+    """Realiza a divisão pontual com proteção contra divisão por zero: C(x,y) = A(x,y) / max(B(x,y), 1.0)."""
     primeira, segunda = _ajustar_duas_matrizes(matriz_a, matriz_b)
     divisor = np.where(segunda == 0, 1.0, segunda)
     resultado = primeira / divisor
@@ -61,21 +70,25 @@ def divisao(
 
 
 def operacao_and(matriz_a: np.ndarray, matriz_b: np.ndarray) -> np.ndarray:
+    """Executa a conjunção lógica bit a bit (AND bitwise) entre pixels correspondentes."""
     primeira, segunda = ajustar_para_mesmo_tamanho(matriz_a, matriz_b)
     return np.bitwise_and(primeira.astype(np.uint8), segunda.astype(np.uint8))
 
 
 def operacao_or(matriz_a: np.ndarray, matriz_b: np.ndarray) -> np.ndarray:
+    """Executa a disjunção lógica bit a bit (OR bitwise) entre pixels correspondentes."""
     primeira, segunda = ajustar_para_mesmo_tamanho(matriz_a, matriz_b)
     return np.bitwise_or(primeira.astype(np.uint8), segunda.astype(np.uint8))
 
 
 def operacao_xor(matriz_a: np.ndarray, matriz_b: np.ndarray) -> np.ndarray:
+    """Executa a disjunção exclusiva bit a bit (XOR bitwise) para realce de diferenças."""
     primeira, segunda = ajustar_para_mesmo_tamanho(matriz_a, matriz_b)
     return np.bitwise_xor(primeira.astype(np.uint8), segunda.astype(np.uint8))
 
 
 def operacao_not(matriz: np.ndarray) -> np.ndarray:
+    """Executa a negação lógica bit a bit (NOT bitwise / Complemento de 1): ~A."""
     return np.bitwise_not(np.asarray(matriz, dtype=np.uint8))
 
 
