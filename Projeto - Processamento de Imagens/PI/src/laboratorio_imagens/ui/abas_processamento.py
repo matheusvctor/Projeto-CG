@@ -145,16 +145,25 @@ class AbaFiltros(ttk.Frame):
             command=lambda: self._sincronizador_pixels.definir_habilitado(self.sincronizar_tabelas.get()),
         ).pack(side="left", padx=(10, 0))
 
-        self.painel_auxiliar = ttk.LabelFrame(self, text="Mascara 3x3", padding=10, style="Card.TLabelframe")
+        self.painel_auxiliar = ttk.LabelFrame(self, text="Máscaras do Filtro Espacial", padding=10, style="Card.TLabelframe")
         self.painel_auxiliar.pack(fill="x", pady=(0, 12))
 
-        grade = ttk.Frame(self.painel_auxiliar, style="Root.TFrame")
-        grade.pack(anchor="w")
+        self.container_mascaras = ttk.Frame(self.painel_auxiliar, style="Root.TFrame")
+        self.container_mascaras.pack(anchor="w")
+
+        # Bloco 1 (Matriz Primária / Gx / Única)
+        self.bloco_m1 = ttk.Frame(self.container_mascaras, style="Root.TFrame")
+        self.bloco_m1.pack(side="left")
+        self.rotulo_m1 = ttk.Label(self.bloco_m1, text="Máscara Principal (Gx)", style="Texto.TLabel", font=tema.FONTE_SUBTITULO)
+        self.rotulo_m1.pack(anchor="w", pady=(0, 4))
+        grade1 = ttk.Frame(self.bloco_m1, style="Root.TFrame")
+        grade1.pack(anchor="w")
+        self.campos_mascara_1: list[list[tk.Entry]] = []
         for linha in range(3):
             linha_campos = []
             for coluna in range(3):
                 campo = tk.Entry(
-                    grade,
+                    grade1,
                     width=7,
                     justify="center",
                     relief="solid",
@@ -165,7 +174,32 @@ class AbaFiltros(ttk.Frame):
                 )
                 campo.grid(row=linha, column=coluna, padx=3, pady=3)
                 linha_campos.append(campo)
-            self.campos_mascara.append(linha_campos)
+            self.campos_mascara_1.append(linha_campos)
+        self.campos_mascara = self.campos_mascara_1
+
+        # Bloco 2 (Matriz Secundária / Gy para operadores de gradiente)
+        self.bloco_m2 = ttk.Frame(self.container_mascaras, style="Root.TFrame")
+        self.rotulo_m2 = ttk.Label(self.bloco_m2, text="Máscara Secundária (Gy)", style="Texto.TLabel", font=tema.FONTE_SUBTITULO)
+        self.rotulo_m2.pack(anchor="w", pady=(0, 4))
+        grade2 = ttk.Frame(self.bloco_m2, style="Root.TFrame")
+        grade2.pack(anchor="w")
+        self.campos_mascara_2: list[list[tk.Entry]] = []
+        for linha in range(3):
+            linha_campos = []
+            for coluna in range(3):
+                campo = tk.Entry(
+                    grade2,
+                    width=7,
+                    justify="center",
+                    relief="solid",
+                    bd=1,
+                    highlightthickness=0,
+                    bg=tema.COR_PAINEL,
+                    fg=tema.COR_TEXTO,
+                )
+                campo.grid(row=linha, column=coluna, padx=3, pady=3)
+                linha_campos.append(campo)
+            self.campos_mascara_2.append(linha_campos)
 
         self.rotulo_auxiliar = ttk.Label(
             self.painel_auxiliar,
@@ -194,29 +228,45 @@ class AbaFiltros(ttk.Frame):
         except ValueError:
             return 1.2
 
-    def _obter_mascara_visual(self, filtro: str) -> list[list[float]]:
-        # referencia unica: usa exatamente as mascaras definidas no modulo core
-        return filtros_espaciais.obter_mascara_visual_filtro(filtro, self._obter_fator_realce_atual()).tolist()
-
     def _ao_alterar_fator_realce(self, *_args) -> None:
         if self.filtro_atual.get() != "High-boost":
             return
-        _preencher_grade_mascara(self.campos_mascara, self._obter_mascara_visual("High-boost"))
-        _definir_estado_grade(self.campos_mascara, editavel=False)
+        m1, _m2, t1, _t2 = filtros_espaciais.obter_mascaras_completas("High-boost", self._obter_fator_realce_atual())
+        _preencher_grade_mascara(self.campos_mascara_1, m1.tolist())
+        self.rotulo_m1.configure(text=t1)
+        _definir_estado_grade(self.campos_mascara_1, editavel=False)
 
     def _ao_mudar_filtro(self) -> None:
         filtro = self.filtro_atual.get()
-        _preencher_grade_mascara(self.campos_mascara, self._obter_mascara_visual(filtro))
+        fator = self._obter_fator_realce_atual()
+        m1, m2, t1, t2 = filtros_espaciais.obter_mascaras_completas(filtro, fator)
+
+        _preencher_grade_mascara(self.campos_mascara_1, m1.tolist())
+        self.rotulo_m1.configure(text=t1)
+
+        if m2 is not None:
+            _preencher_grade_mascara(self.campos_mascara_2, m2.tolist())
+            self.rotulo_m2.configure(text=t2 or "Máscara Gy")
+            if not self.bloco_m2.winfo_manager():
+                self.bloco_m2.pack(side="left", padx=(30, 0))
+            _definir_estado_grade(self.campos_mascara_1, editavel=False)
+            _definir_estado_grade(self.campos_mascara_2, editavel=False)
+            self.rotulo_auxiliar.configure(
+                text="Operador de gradiente bidirecional: a resposta final é a soma das magnitudes das duas derivadas: |Gx| + |Gy|"
+            )
+        else:
+            if self.bloco_m2.winfo_manager():
+                self.bloco_m2.pack_forget()
 
         if filtro == "High-boost":
             self.fator_realce.set("1.2")
             if not self.bloco_fator_a.winfo_manager():
                 self.bloco_fator_a.pack(side="left")
-            _definir_estado_grade(self.campos_mascara, editavel=False)
+            _definir_estado_grade(self.campos_mascara_1, editavel=False)
             self.rotulo_auxiliar.configure(
-                text="A matriz abaixo mostra a mascara calculada com o fator A atual. Ajuste A se quiser variar o reforco."
+                text="A matriz acima mostra a máscara calculada com o fator A atual. Ajuste A para variar o reforço das altas frequências."
             )
-            self.status.set("Ajuste o fator A apenas se quiser variar o reforco do high-boost.")
+            self.status.set("Ajuste o fator A se desejar variar a intensidade do High-Boost.")
             return
 
         if self.bloco_fator_a.winfo_manager():
@@ -224,35 +274,18 @@ class AbaFiltros(ttk.Frame):
 
         if filtro == "Filtro livre":
             self.rotulo_auxiliar.configure(
-                text="A matriz abaixo ja vem com um valor inicial. Edite somente se quiser testar outra mascara 3x3."
+                text="A matriz vem com valores padrão. Edite os 9 campos 3x3 livremente para testar qualquer filtro customizado."
             )
-            _definir_estado_grade(self.campos_mascara, editavel=True)
-            self.status.set("Filtro livre selecionado. A mascara 3x3 pode ser ajustada manualmente.")
+            _definir_estado_grade(self.campos_mascara_1, editavel=True)
+            self.status.set("Filtro livre selecionado. A máscara 3x3 pode ser personalizada.")
             return
 
-        _definir_estado_grade(self.campos_mascara, editavel=False)
-        if filtro in {"Roberts", "Roberts cruzado", "Prewitt", "Sobel"}:
+        _definir_estado_grade(self.campos_mascara_1, editavel=False)
+        if m2 is None:
             self.rotulo_auxiliar.configure(
-                text="A grade mostra a mascara principal do operador. A mascara complementar e aplicada internamente."
+                text="A matriz acima mostra os coeficientes 3x3 aplicados por convolução pelo filtro selecionado."
             )
-        elif filtro in {
-            "Roberts X",
-            "Roberts Y",
-            "Roberts cruzado X",
-            "Roberts cruzado Y",
-            "Prewitt X",
-            "Prewitt Y",
-            "Sobel X",
-            "Sobel Y",
-        }:
-            self.rotulo_auxiliar.configure(
-                text="A grade mostra a mascara exata usada no eixo selecionado do operador."
-            )
-        else:
-            self.rotulo_auxiliar.configure(
-                text="A matriz abaixo mostra os valores 3x3 usados pelo filtro selecionado."
-            )
-        self.status.set(f"Filtro '{filtro}' pronto para aplicacao.")
+        self.status.set(f"Filtro '{filtro}' pronto para aplicação.")
 
     def carregar_imagem(self) -> None:
         imagem = _abrir_dialogo_imagem()

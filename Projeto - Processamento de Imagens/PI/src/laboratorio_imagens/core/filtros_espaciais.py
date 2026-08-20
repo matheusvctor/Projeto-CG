@@ -346,6 +346,73 @@ def obter_mascara_visual_filtro(nome_filtro: str, fator_realce: float = 1.2) -> 
     return np.asarray(MASCARAS_VISUAIS_PADRAO[nome_filtro], dtype=np.float64).copy()
 
 
+def obter_mascaras_completas(
+    nome_filtro: str, fator_realce: float = 1.2
+) -> tuple[np.ndarray, np.ndarray | None, str, str | None]:
+    """Retorna as matrizes e títulos do filtro para exibição visual completa."""
+    if nome_filtro == "High-boost":
+        return (
+            obter_mascara_high_boost_visual(fator_realce),
+            None,
+            f"Máscara High-Boost (Fator A = {fator_realce})",
+            None,
+        )
+    if nome_filtro == "Roberts":
+        return (
+            MASCARA_ROBERTS_X,
+            MASCARA_ROBERTS_Y,
+            "Máscara Gx (Diferença Vertical)",
+            "Máscara Gy (Diferença Horizontal)",
+        )
+    if nome_filtro == "Roberts cruzado":
+        return (
+            MASCARA_ROBERTS_CRUZADO_X,
+            MASCARA_ROBERTS_CRUZADO_Y,
+            "Máscara Gx (Diagonal Principal)",
+            "Máscara Gy (Diagonal Secundária)",
+        )
+    if nome_filtro == "Prewitt":
+        return (
+            MASCARA_PREWITT_X,
+            MASCARA_PREWITT_Y,
+            "Máscara Gx (Horizontal)",
+            "Máscara Gy (Vertical)",
+        )
+    if nome_filtro == "Sobel":
+        return (
+            MASCARA_SOBEL_X,
+            MASCARA_SOBEL_Y,
+            "Máscara Gx (Horizontal)",
+            "Máscara Gy (Vertical)",
+        )
+    if nome_filtro == "Roberts X":
+        return (MASCARA_ROBERTS_X, None, "Máscara Gx (Vertical)", None)
+    if nome_filtro == "Roberts Y":
+        return (MASCARA_ROBERTS_Y, None, "Máscara Gy (Horizontal)", None)
+    if nome_filtro == "Roberts cruzado X":
+        return (MASCARA_ROBERTS_CRUZADO_X, None, "Máscara Gx (Diagonal Principal)", None)
+    if nome_filtro == "Roberts cruzado Y":
+        return (MASCARA_ROBERTS_CRUZADO_Y, None, "Máscara Gy (Diagonal Secundária)", None)
+    if nome_filtro == "Prewitt X":
+        return (MASCARA_PREWITT_X, None, "Máscara Gx (Horizontal)", None)
+    if nome_filtro == "Prewitt Y":
+        return (MASCARA_PREWITT_Y, None, "Máscara Gy (Vertical)", None)
+    if nome_filtro == "Sobel X":
+        return (MASCARA_SOBEL_X, None, "Máscara Gx (Horizontal)", None)
+    if nome_filtro == "Sobel Y":
+        return (MASCARA_SOBEL_Y, None, "Máscara Gy (Vertical)", None)
+    if nome_filtro == "Filtro da media":
+        return (MASCARA_MEDIA, None, "Máscara da Média 3x3 (Filtro Linear 1/9)", None)
+    if nome_filtro == "Filtro da mediana":
+        return (MASCARA_MEDIANA_REFERENCIA, None, "Janela de Referência 3x3 (Mediana Não-Linear)", None)
+    if nome_filtro == "Passa-altas basico":
+        return (MASCARA_PASSA_ALTAS_BASICO, None, "Máscara Passa-Altas Básica (Laplaciano)", None)
+    if nome_filtro == "Filtro livre":
+        return (MASCARA_FILTRO_LIVRE_INICIAL, None, "Máscara Personalizada 3x3 (Editável)", None)
+    
+    return (MASCARA_FILTRO_LIVRE_INICIAL, None, "Máscara 3x3", None)
+
+
 def aplicar_filtro_livre(matriz: np.ndarray, mascara_personalizada: np.ndarray) -> np.ndarray:
     return limitar_uint8(aplicar_correlacao(matriz, mascara_personalizada))
 

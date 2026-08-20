@@ -42,9 +42,12 @@ class JanelaPrincipal(tk.Tk):
         self.geometry(f"{largura}x{altura}+{posicao_x}+{posicao_y}")
 
     def _configurar_estilo(self) -> None:
-        tema.configure_ttk_styles(self)
         estilo = ttk.Style(self)
-        estilo.theme_use("clam")
+        try:
+            estilo.theme_use("clam")
+        except Exception:
+            pass
+        tema.configure_ttk_styles(self)
 
         estilo.configure("Root.TFrame", background=tema.COR_FUNDO)
         estilo.configure(

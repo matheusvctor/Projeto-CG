@@ -107,7 +107,57 @@ def configure_ttk_styles(root=None):
     style.configure("TLabelframe.Label", background=BG_PANEL, foreground=CYAN_GLOW, font=FONT_SUBTITLE)
     style.configure("TLabel", background=BG_APP, foreground=FG_TEXT, font=FONT_NORMAL)
     style.configure("TCheckbutton", background=BG_APP, foreground=FG_TEXT, font=FONT_NORMAL)
-    style.configure("TCombobox", fieldbackground=BG_INPUT, background=BG_PANEL, foreground=FG_TEXT, font=FONT_NORMAL)
+    style.configure(
+        "TCombobox",
+        fieldbackground=BG_INPUT,
+        background=BG_PANEL,
+        foreground=FG_TEXT,
+        selectbackground=ACCENT,
+        selectforeground="#ffffff",
+        arrowcolor=CYAN_GLOW,
+        font=FONT_NORMAL,
+        padding=3,
+    )
+    style.map(
+        "TCombobox",
+        fieldbackground=[
+            ("readonly", BG_INPUT),
+            ("active", BG_INPUT),
+            ("focus", BG_INPUT),
+            ("disabled", BG_PANEL),
+            ("!disabled", BG_INPUT),
+        ],
+        background=[
+            ("readonly", BG_PANEL),
+            ("active", BG_PANEL),
+            ("focus", BG_PANEL),
+            ("disabled", BG_APP),
+            ("!disabled", BG_PANEL),
+        ],
+        foreground=[
+            ("readonly", FG_TEXT),
+            ("active", FG_TEXT),
+            ("focus", FG_TEXT),
+            ("disabled", FG_MUTED),
+            ("!disabled", FG_TEXT),
+        ],
+        arrowcolor=[
+            ("readonly", CYAN_GLOW),
+            ("active", "#ffffff"),
+            ("disabled", FG_MUTED),
+            ("!disabled", CYAN_GLOW),
+        ],
+    )
+    if root is not None:
+        try:
+            root.option_add("*TCombobox*Listbox.background", BG_PANEL)
+            root.option_add("*TCombobox*Listbox.foreground", FG_TEXT)
+            root.option_add("*TCombobox*Listbox.selectBackground", ACCENT)
+            root.option_add("*TCombobox*Listbox.selectForeground", "#ffffff")
+            root.option_add("*TCombobox*Listbox.font", FONT_NORMAL)
+        except Exception:
+            pass
+
     style.configure("TSpinbox", fieldbackground=BG_INPUT, background=BG_PANEL, foreground=FG_TEXT, font=FONT_NORMAL)
     style.configure("TEntry", fieldbackground=BG_INPUT, foreground=FG_TEXT, font=FONT_NORMAL)
     

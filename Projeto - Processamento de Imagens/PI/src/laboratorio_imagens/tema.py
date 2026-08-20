@@ -115,7 +115,60 @@ def configure_ttk_styles(root=None):
     style.configure("Status.TLabel", background=COR_FUNDO, foreground=COR_TEXTO_MUTED, font=FONTE_PEQUENA)
     style.configure("TEntry", fieldbackground=COR_PAINEL_ALT, foreground=COR_TEXTO, insertcolor="#ffffff")
     style.configure("TSpinbox", fieldbackground=COR_PAINEL_ALT, foreground=COR_TEXTO, insertcolor="#ffffff")
-    style.configure("TCombobox", fieldbackground=COR_PAINEL_ALT, foreground=COR_TEXTO, selectbackground=COR_DESTAQUE)
+    style.configure(
+        "TCombobox",
+        background=COR_PAINEL_ALT,
+        fieldbackground=COR_PAINEL_ALT,
+        foreground=COR_TEXTO,
+        selectbackground=COR_DESTAQUE,
+        selectforeground="#000000",
+        arrowcolor=COR_DESTAQUE,
+        bordercolor=COR_BORDA,
+        darkcolor=COR_PAINEL_ALT,
+        lightcolor=COR_PAINEL_ALT,
+        relief="flat",
+        padding=4,
+    )
+    style.map(
+        "TCombobox",
+        fieldbackground=[
+            ("readonly", COR_PAINEL_ALT),
+            ("active", COR_PAINEL_ALT),
+            ("focus", COR_PAINEL_ALT),
+            ("disabled", COR_PAINEL),
+            ("!disabled", COR_PAINEL_ALT),
+        ],
+        background=[
+            ("readonly", COR_PAINEL_ALT),
+            ("active", COR_PAINEL_ALT),
+            ("focus", COR_PAINEL_ALT),
+            ("disabled", COR_PAINEL),
+            ("!disabled", COR_PAINEL_ALT),
+        ],
+        foreground=[
+            ("readonly", COR_TEXTO),
+            ("active", COR_TEXTO),
+            ("focus", COR_TEXTO),
+            ("disabled", COR_TEXTO_MUTED),
+            ("!disabled", COR_TEXTO),
+        ],
+        arrowcolor=[
+            ("readonly", COR_DESTAQUE),
+            ("active", "#ffffff"),
+            ("disabled", COR_TEXTO_MUTED),
+            ("!disabled", COR_DESTAQUE),
+        ],
+    )
+
+    if root is not None:
+        try:
+            root.option_add("*TCombobox*Listbox.background", COR_PAINEL)
+            root.option_add("*TCombobox*Listbox.foreground", COR_TEXTO)
+            root.option_add("*TCombobox*Listbox.selectBackground", COR_DESTAQUE)
+            root.option_add("*TCombobox*Listbox.selectForeground", "#000000")
+            root.option_add("*TCombobox*Listbox.font", FONTE_CORPO)
+        except Exception:
+            pass
 
     style.configure("TNotebook", background=COR_FUNDO, borderwidth=0)
     style.configure("TNotebook.Tab", background=COR_PAINEL_ALT, foreground=COR_TEXTO_MUTED, padding=[12, 5], font=FONTE_SUBTITULO)
