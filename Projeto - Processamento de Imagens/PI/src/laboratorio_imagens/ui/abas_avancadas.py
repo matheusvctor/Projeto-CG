@@ -129,11 +129,36 @@ class AbaMorfologia(ttk.Frame):
         tema.make_btn(barra_acoes, "💾 Salvar", self.salvar_resultado, "secondary", padx=8, pady=4).pack(side="left", padx=(6, 0))
         
         def _obter_info_morfologia():
-            linhas_morf = {
-                "Erosão": 12, "Dilatação": 16, "Abertura": 20, "Fechamento": 24,
-                "Gradiente morfológico": 28, "Top-hat": 32, "Bottom-hat": 36, "Hit-or-miss": 40
-            }
-            return ("src/laboratorio_imagens/core/operacoes_morfologicas.py", linhas_morf.get(self.operacao_atual.get(), 12))
+            op = self.operacao.get()
+            modo = self.modo_operacao.get()
+            if modo == "Binaria":
+                linhas_bin = {
+                    "Dilatacao": 56,
+                    "Erosao": 65,
+                    "Abertura": 74,
+                    "Fechamento": 78,
+                    "Hit-or-miss": 82,
+                    "Contorno interno": 98,
+                    "Contorno externo": 104,
+                    "Gradiente morfologico": 110,
+                    "Top-hat": 116,
+                    "Bottom-hat": 122,
+                }
+                linha = linhas_bin.get(op, 56)
+            else:
+                linhas_cinza = {
+                    "Dilatacao": 128,
+                    "Erosao": 132,
+                    "Abertura": 136,
+                    "Fechamento": 140,
+                    "Gradiente morfologico": 144,
+                    "Contorno interno": 150,
+                    "Contorno externo": 156,
+                    "Top-hat": 162,
+                    "Bottom-hat": 168,
+                }
+                linha = linhas_cinza.get(op, 128)
+            return ("src/laboratorio_imagens/core/operacoes_morfologicas.py", linha)
 
         tema.make_btn_insp(barra_acoes, _obter_info_morfologia).pack(side="left", padx=(6, 0))
         ttk.Checkbutton(
