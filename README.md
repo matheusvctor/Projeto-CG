@@ -21,8 +21,8 @@ Computacao-grafica-main/
 │   └── PI/
 │       ├── executar_projeto.py               # Ponto de entrada do Projeto
 │       ├── dist/
-│       │   └── LaboratorioProcessamentoImagens.exe # Executável standalone independente
-│       ├── assets/                           # Imagens de teste (.pgm, .pbm, .png, .jpg)
+│       │   └── Projeto Processamento de Imagem.exe # Executável standalone independente
+│       ├── assets/                           # Imagens de teste (.pgm, .pbm)
 │       └── src/laboratorio_imagens/          # Módulos matemáticos e Interface com Menu Lateral
 │
 └── CG/                                       # Laboratórios e scripts práticos auxiliares
@@ -40,13 +40,13 @@ Computacao-grafica-main/
 - **Morfologia Matemática**: Erosão, Dilatação, Abertura, Fechamento, Contornos, Gradiente Morfológico, Top/Bottom-Hat e Hit-or-Miss (binário e tons de cinza).
 - **Transformações Geométricas**: Escala, Translação, Rotação (mapeamento inverso cartesiano), Reflexão e Cisalhamento.
 - **Deformação e Morfismo Temporal**: Triangulação de Delaunay e interpolação afim por triângulos ($t \in [0, 1]$) com exportação para GIF animado.
-- **Leitor Universal**: Suporte a NetPBM (`.pgm`, `.pbm`) e formatos comuns (`.png`, `.jpg`, `.jpeg`, `.bmp`).
+- **Parser NetPBM**: Suporte estrito a NetPBM PGM (`.pgm` P2/P5) e PBM (`.pbm` P1).
 
 ### ◈ Projeto 1 - Computação Gráfica (Unidade 1)
-- **Questão 1**: Rasterização de primitivas (DDA, Bresenham) e transformações geométricas 2D.
-- **Questão 2**: Algoritmos de recorte de retas (**Cohen-Sutherland**) e recorte de polígonos (**Sutherland-Hodgman**).
-- **Questão 3**: Modelagem tridimensional, rotações espaciais e projeção de viewport.
-- **Questão 4**: Manipulação e transformações espaciais sobre matrizes de imagem PGM.
+- **Questão 1 & 5**: Rasterização de primitivas (DDA, Bresenham), cônicas e Splines de Bézier cúbicas com 4 pontos de controle.
+- **Questão 2**: Algoritmos de recorte de retas (**Cohen-Sutherland**) com animação contínua e recorte de polígonos (**Sutherland-Hodgman**).
+- **Questão 3**: Modelagem tridimensional, transformações homogêneas 3D e projeção isométrica com viewport.
+- **Questão 4**: Manipulação afim com mapeamento inverso sobre matrizes de imagem PGM.
 
 ---
 
@@ -58,7 +58,7 @@ Computacao-grafica-main/
 python ".\Projeto - Processamento de Imagens\PI\executar_projeto.py"
 
 # Ou via executável independente (.exe):
-& ".\Projeto - Processamento de Imagens\PI\dist\LaboratorioProcessamentoImagens.exe"
+& ".\Projeto - Processamento de Imagens\PI\dist\Projeto Processamento de Imagem.exe"
 ```
 
 ### Projeto 1 (Unidade 1):
