@@ -41,6 +41,14 @@ Ambiente integrado em Python/Tkinter com a implementação de todos os algoritmo
 
 ---
 
+## ⚠️ Problemas Identificados e Ajustes a Serem Corrigidos
+
+- **Implementação Estrita a Nível de Pixel Real em Tela**:
+  - No projeto da primeira unidade, as **viewports** e **todos os algoritmos** (rasterização de retas, circunferências, cônicas, recortes e transformações 2D/3D) devem ser implementados e exibidos estritamente a **nível de pixel real ativo em tela**.
+  - **Não deve haver simulação de pixel** (como blocos ampliados ou grades virtuais simuladas); a renderização deve operar acendendo e manipulando pixels reais e físicos da tela/viewport diretamente.
+
+---
+
 ## 🚀 Como Executar
 
 ### Via Script Python:

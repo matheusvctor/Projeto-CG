@@ -50,6 +50,15 @@ Computacao-grafica-main/
 
 ---
 
+## ⚠️ Problemas Identificados e Ajustes a Serem Corrigidos (Unidade 1)
+
+- **Exibição e Implementação a Nível de Pixel Real em Tela**:
+  - No projeto da primeira unidade, as **viewports** e **todos os algoritmos** (rasterização, primitivas, recortes e transformações) devem ser implementados e exibidos estritamente a **nível de pixel real ativo em tela**.
+  - **Sem simulação de pixel**: Não devem ser utilizados blocos simulados ou matrizes virtuais ampliadas; os pixels manipulados e ativados devem ser os pixels físicos reais da tela/viewport.
+
+
+---
+
 ## 🚀 Como Executar
 
 ### Projeto de Processamento de Imagens:
