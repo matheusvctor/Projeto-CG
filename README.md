@@ -1,4 +1,4 @@
-# Repositório de Computação Gráfica
+# Projeto: Computação Gráfica
 
 Ambiente integrado com implementações de algoritmos fundamentais e avançados de **Computação Gráfica** e **Processamento Digital de Imagens (PDI)** desenvolvidos em Python.
 
