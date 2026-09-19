@@ -4,8 +4,7 @@ Ambiente integrado com implementações de algoritmos fundamentais e avançados 
 
 ---
 
-## 📂 Estrutura do Repositório
-
+## 📂 Estrutura
 ```
 Computacao-grafica-main/
 │
